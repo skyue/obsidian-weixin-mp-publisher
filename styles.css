@@ -843,6 +843,22 @@
   background: var(--background-primary);
 }
 
+.wechat-publisher-about__feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.wechat-publisher-about__qr {
+  display: block;
+  margin: 0 auto 10px;
+  width: 180px;
+  max-width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+}
+
 .wechat-publisher-about__card-hint {
   margin-top: 4px;
   font-size: 0.88em;

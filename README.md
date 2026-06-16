@@ -22,6 +22,8 @@ Obsidian交流聊天反馈群：https://blog.discoverlabs.ac.cn/posts/0000-obsid
 
 ![Obsidian交流聊天反馈群二维码](https://blog.discoverlabs.ac.cn/img/wechat-publisher/feedback-group-qr.png)
 
+> v1.0.3 更新：插件「关于 / 联系作者」加入 Obsidian交流聊天反馈群入口，二维码后续只需更新博客固定图片，插件会自动读取新图。
+
 完整使用教程、截图说明和备用下载方式见：https://blog.discoverlabs.ac.cn/downloads/wechat-publisher/
 
 ![在 Obsidian 官方插件市场搜索 WeChat Publisher](https://cf-img.discoverlabs.ac.cn/20260514cb02a05773516057f5b4b5021c207538.webp)
