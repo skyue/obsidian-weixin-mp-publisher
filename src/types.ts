@@ -131,3 +131,111 @@ function pruneArticleImageRecords(articleImageRecords) {
   }).slice(0, ARTICLE_IMAGE_RECORD_LIMIT);
 }
 
+// TypeScript type definitions for lint compliance
+interface PublisherAccount {
+  id: string;
+  name: string;
+  appId: string;
+  appSecret: string;
+  apiKey?: string;
+  defaultAuthor?: string;
+  defaultCoverPath?: string;
+  licenseCode?: string;
+  licenseToken?: string;
+  licenseId?: string;
+  licensePlan?: string;
+  licenseStatus?: string;
+  licenseCodeMasked?: string;
+  licenseBoundAppId?: string;
+  licenseActivatedAt?: string | null;
+  licenseLastValidatedAt?: string | null;
+}
+
+interface DraftRecord {
+  notePath: string;
+  accountId: string;
+  mediaId: string;
+  title: string;
+  updatedAt: string;
+}
+
+interface CoverMediaRecord {
+  accountId: string;
+  sourceKey: string;
+  mediaId: string;
+  updatedAt: string;
+}
+
+interface ArticleImageRecord {
+  accountId: string;
+  sourceKey: string;
+  url: string;
+  updatedAt: string;
+}
+
+interface StyleOverrides {
+  fontPreset: string;
+  textAlign: string;
+  paragraphIndent: boolean;
+  figureCaptionMode: string;
+}
+
+interface PublisherSettings {
+  defaultThemeId: string;
+  defaultStyleId: string;
+  styleOverrides: StyleOverrides;
+  preferredAccountId: string | null;
+  accounts: PublisherAccount[];
+  savedStylePresets: any[];
+  draftRecords: DraftRecord[];
+  coverMediaRecords: CoverMediaRecord[];
+  articleImageRecords: ArticleImageRecord[];
+  entitlements: any;
+}
+
+interface ImageAsset {
+  bytes: Uint8Array;
+  contentType: string;
+  filename: string;
+  sourceUrl?: string;
+  filePath?: string;
+}
+
+interface HtmlImageRef {
+  src: string;
+  originalSource?: string;
+}
+
+interface ParsedDataUrl {
+  mimeType: string;
+  data: string;
+  isBase64: boolean;
+}
+
+interface RehostResult {
+  html: string;
+  imageCount: number;
+  articleImageRecords: ArticleImageRecord[];
+}
+
+interface PublishInput {
+  app: any;
+  account: PublisherAccount;
+  file: any;
+  html: string;
+  frontmatter: any;
+  existingDraftMediaId: string | null;
+  coverMediaRecords: CoverMediaRecord[];
+  articleImageRecords: ArticleImageRecord[];
+  onProgress?: (message: string) => void;
+}
+
+interface PublishResult {
+  mediaId: string;
+  title: string;
+  imageCount: number;
+  action: string;
+  coverMediaRecord?: CoverMediaRecord;
+  articleImageRecords?: ArticleImageRecord[];
+}
+

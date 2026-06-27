@@ -765,7 +765,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
     return targetPath;
   }
 };
-async function ensureAdapterFolder(adapter2, targetPath) {
+async function ensureAdapterFolder(adapter2: any, targetPath: string): Promise<void> {
   const segments = targetPath.split("/").filter(Boolean);
   let currentPath = "";
   for (const segment of segments) {
@@ -776,7 +776,7 @@ async function ensureAdapterFolder(adapter2, targetPath) {
     }
   }
 }
-function pickFileExtension(file) {
+function pickFileExtension(file: File): string {
   const fromName = file.name.split(".").pop()?.toLowerCase();
   if (fromName && /^(png|jpg|jpeg|gif|webp|svg)$/.test(fromName)) {
     return fromName;
@@ -787,7 +787,7 @@ function pickFileExtension(file) {
   if (file.type.includes("svg")) return "svg";
   return "jpg";
 }
-async function validateWechatCoverCandidate(file) {
+async function validateWechatCoverCandidate(file: File): Promise<string | null> {
   const image = await loadImageFromFile(file);
   const width3 = image.naturalWidth || image.width;
   const height2 = image.naturalHeight || image.height;
@@ -807,7 +807,7 @@ async function validateWechatCoverCandidate(file) {
   }
   return warnings3.length ? warnings3.join("；") : null;
 }
-async function loadImageFromFile(file) {
+async function loadImageFromFile(file: File): Promise<HTMLImageElement> {
   const objectUrl = URL.createObjectURL(file);
   try {
     return await new Promise((resolve2, reject3) => {
@@ -820,7 +820,7 @@ async function loadImageFromFile(file) {
     URL.revokeObjectURL(objectUrl);
   }
 }
-function normalizeHttpUrl(value2) {
+function normalizeHttpUrl(value2: string): string | null {
   try {
     const url = new URL(value2);
     return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : null;
@@ -828,7 +828,7 @@ function normalizeHttpUrl(value2) {
     return null;
   }
 }
-function extractIpv4(raw) {
+function extractIpv4(raw: string): string | null {
   const match2 = raw.match(/\b(?:\d{1,3}\.){3}\d{1,3}\b/);
   if (!match2) {
     return null;

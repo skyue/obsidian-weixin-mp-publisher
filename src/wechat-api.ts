@@ -19,10 +19,10 @@ const IMAGE_EXTENSIONS2 = /* @__PURE__ */ new Map([
   ["svg", "image/svg+xml"],
   ["bmp", "image/bmp"]
 ]);
-function normalizeLookupKey2(value2) {
+function normalizeLookupKey2(value2: string): string {
   return value2.trim().toLowerCase();
 }
-function extractHtmlImageRefs(html5) {
+function extractHtmlImageRefs(html5: string): HtmlImageRef[] {
   if (typeof DOMParser !== "undefined") {
     try {
       const document2 = new DOMParser().parseFromString(html5, "text/html");
@@ -68,12 +68,12 @@ function extractHtmlImageRefs(html5) {
   }
   return refs;
 }
-function extractFirstHtmlImageUrl(html5) {
+function extractFirstHtmlImageUrl(html5: string): string | null {
   const ref = extractHtmlImageRefs(html5)[0];
   if (!ref) return null;
   return ref.originalSource || ref.src;
 }
-function parseDataUrl(dataUrl) {
+function parseDataUrl(dataUrl: string): ParsedDataUrl | null {
   if (!dataUrl.startsWith("data:")) {
     return null;
   }
@@ -91,7 +91,7 @@ function parseDataUrl(dataUrl) {
     isBase64: headerParts.some((part) => part.toLowerCase() === "base64")
   };
 }
-function base64ToUint8Array(base64) {
+function base64ToUint8Array(base64: string): Uint8Array {
   const candidates = [
     base64,
     base64.replace(/\s+/g, ""),
@@ -114,18 +114,18 @@ function base64ToUint8Array(base64) {
   }
   throw new Error("base64 数据解码失败");
 }
-function plainDataToUint8Array(data6) {
+function plainDataToUint8Array(data6: string): Uint8Array {
   try {
     return new TextEncoder().encode(decodeURIComponent(data6));
   } catch {
     return new TextEncoder().encode(data6);
   }
 }
-function getMimeTypeByPath2(path4) {
+function getMimeTypeByPath2(path4: string): string | null {
   const ext = path4.split(".").pop()?.toLowerCase() ?? "";
   return IMAGE_EXTENSIONS2.get(ext) ?? null;
 }
-function findVaultFile2(app, sourceFile, rawLink) {
+function findVaultFile2(app: any, sourceFile: any, rawLink: string): any | null {
   const link3 = decodeURIComponent(rawLink).split("#")[0]?.trim().replace(/^<|>$/g, "");
   if (!link3 || /^(https?:|data:)/i.test(link3)) {
     return null;
@@ -151,7 +151,7 @@ function findVaultFile2(app, sourceFile, rawLink) {
   const normalizedBasename = normalizeLookupKey2(basename);
   return app.vault.getFiles().find((file) => normalizeLookupKey2(file.name) === normalizedBasename) ?? null;
 }
-function concatUint8Arrays(parts) {
+function concatUint8Arrays(parts: Uint8Array[]): Uint8Array {
   const totalLength = parts.reduce((sum2, part) => sum2 + part.byteLength, 0);
   const merged = new Uint8Array(totalLength);
   let offset = 0;
@@ -161,20 +161,20 @@ function concatUint8Arrays(parts) {
   }
   return merged;
 }
-function guessExtension(contentType) {
+function guessExtension(contentType: string): string {
   if (contentType.includes("png")) return "png";
   if (contentType.includes("gif")) return "gif";
   if (contentType.includes("webp")) return "webp";
   if (contentType.includes("svg")) return "svg";
   return "jpg";
 }
-function previewSource(value2, limit2 = 160) {
+function previewSource(value2: string, limit2: number = 160): string {
   if (!value2) {
     return "";
   }
   return value2.length > limit2 ? `${value2.slice(0, limit2)}...` : value2;
 }
-function compactWechatHtmlForSubmit(html5) {
+function compactWechatHtmlForSubmit(html5: string): string {
   return html5.replace(
     /<a\b[^>]*\bhref=(["'])https:\/\/mp\.weixin\.qq\.com\/cgi-bin\/[^"']*\1[^>]*>([\s\S]*?)<\/a>/gi,
     "$2"
@@ -183,10 +183,10 @@ function compactWechatHtmlForSubmit(html5) {
     return cleaned ? ` style="${cleaned}"` : "";
   }).replace(/>[ \t\r\n\f\v]+</g, "><").replace(/[ \t\r\n\f\v]{2,}/g, " ").trim();
 }
-function countRemainingDataImages(html5) {
+function countRemainingDataImages(html5: string): number {
   return (html5.match(/<img\b[^>]*\bsrc="data:[^"]*"/g) || []).length;
 }
-function safeGetVaultResourcePath(app, target) {
+function safeGetVaultResourcePath(app: any, target: any): string | undefined {
   try {
     const value2 = app.vault.getResourcePath(target);
     return typeof value2 === "string" && value2.trim() ? value2 : void 0;
@@ -194,7 +194,7 @@ function safeGetVaultResourcePath(app, target) {
     return void 0;
   }
 }
-function safeGetAdapterFullPath(app, normalizedPath) {
+function safeGetAdapterFullPath(app: any, normalizedPath: string): string | undefined {
   try {
     const adapter2 = app.vault.adapter;
     if (typeof adapter2.getFullPath !== "function") {
@@ -206,19 +206,19 @@ function safeGetAdapterFullPath(app, normalizedPath) {
     return void 0;
   }
 }
-function isWechatPreferredArticleImageType(contentType) {
+function isWechatPreferredArticleImageType(contentType: string): boolean {
   return /(image\/png|image\/jpeg|image\/jpg)/i.test(contentType);
 }
-function bytesToUtf8String(bytes) {
+function bytesToUtf8String(bytes: Uint8Array): string {
   return new TextDecoder().decode(bytes);
 }
-function bytesToArrayBuffer(bytes) {
+function bytesToArrayBuffer(bytes: Uint8Array): ArrayBuffer {
   return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength);
 }
-function bytesToHex(bytes) {
+function bytesToHex(bytes: Uint8Array): string {
   return Array.from(bytes).map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
-function fallbackHashBytes(bytes) {
+function fallbackHashBytes(bytes: Uint8Array): string {
   let hash = 2166136261;
   for (const byte of bytes) {
     hash ^= byte;
@@ -226,7 +226,7 @@ function fallbackHashBytes(bytes) {
   }
   return hash.toString(16).padStart(8, "0");
 }
-async function createCoverMediaSourceKey(asset) {
+async function createCoverMediaSourceKey(asset: ImageAsset): Promise<string> {
   const cryptoApi = globalThis.crypto;
   const hash = cryptoApi?.subtle && typeof cryptoApi.subtle.digest === "function" ? bytesToHex(
     new Uint8Array(
@@ -235,11 +235,11 @@ async function createCoverMediaSourceKey(asset) {
   ) : fallbackHashBytes(asset.bytes);
   return `${asset.contentType.toLowerCase()}:${asset.bytes.byteLength}:${hash}`;
 }
-function toElectronBinary(bytes) {
+function toElectronBinary(bytes: Uint8Array): any {
   const runtime = globalThis;
   return runtime.Buffer?.from ? runtime.Buffer.from(bytes) : bytes;
 }
-function getElectronNativeImage() {
+function getElectronNativeImage(): any {
   try {
     const runtime = globalThis;
     const electronModule = runtime.require?.("electron");
@@ -248,7 +248,7 @@ function getElectronNativeImage() {
     return null;
   }
 }
-function getNodeRequire() {
+function getNodeRequire(): any {
   try {
     const runtime = globalThis;
     return runtime.require ?? null;
@@ -256,7 +256,7 @@ function getNodeRequire() {
     return null;
   }
 }
-function requireOptional(runtimeRequire, names) {
+function requireOptional(runtimeRequire: any, names: string[]): any {
   for (const name of names) {
     try {
       return runtimeRequire(name);
@@ -266,7 +266,7 @@ function requireOptional(runtimeRequire, names) {
   }
   return null;
 }
-function convertAssetWithSips(asset, targetFormat) {
+function convertAssetWithSips(asset: ImageAsset, targetFormat: string): ImageAsset | null {
   if (asset.sourceUrl?.startsWith("data:") || !asset.filename) {
     return null;
   }
@@ -322,7 +322,7 @@ function convertAssetWithSips(asset, targetFormat) {
     return null;
   }
 }
-function createElectronImageFromAsset(nativeImage, asset) {
+function createElectronImageFromAsset(nativeImage: any, asset: ImageAsset): any {
   if (asset.filePath && nativeImage.createFromPath) {
     try {
       const image = nativeImage.createFromPath(asset.filePath);
@@ -364,7 +364,7 @@ function createElectronImageFromAsset(nativeImage, asset) {
     return null;
   }
 }
-function stringToBase642(value2) {
+function stringToBase642(value2: string): string {
   const encoded = new TextEncoder().encode(value2);
   let binary2 = "";
   for (const byte of encoded) {
@@ -372,7 +372,7 @@ function stringToBase642(value2) {
   }
   return btoa(binary2);
 }
-function parseSvgLength2(rawValue) {
+function parseSvgLength2(rawValue: string): number | null {
   if (!rawValue) {
     return null;
   }
@@ -411,7 +411,7 @@ function parseSvgLength2(rawValue) {
       return numeric;
   }
 }
-function normalizeSvgMarkup2(svgMarkup) {
+function normalizeSvgMarkup2(svgMarkup: string): { markup: string; width: number; height: number } {
   const fallbackWidth = 800;
   const fallbackHeight = 450;
   const parser27 = new DOMParser();
@@ -446,7 +446,7 @@ function normalizeSvgMarkup2(svgMarkup) {
     height: height2
   };
 }
-async function loadImageFromUrl2(url, cleanup2, errorMessage = "图片解码失败") {
+async function loadImageFromUrl2(url: string, cleanup2: (() => void) | undefined, errorMessage: string = "图片解码失败"): Promise<HTMLImageElement> {
   return await new Promise((resolve2, reject3) => {
     const image = new Image();
     image.decoding = "async";
@@ -461,11 +461,11 @@ async function loadImageFromUrl2(url, cleanup2, errorMessage = "图片解码失�
     image.src = url;
   });
 }
-async function loadImageFromBlob(blob) {
+async function loadImageFromBlob(blob: Blob): Promise<HTMLImageElement> {
   const objectUrl = URL.createObjectURL(blob);
   return loadImageFromUrl2(objectUrl, () => URL.revokeObjectURL(objectUrl));
 }
-async function loadRasterImage(asset) {
+async function loadRasterImage(asset: ImageAsset): Promise<{ drawable: any; width: number; height: number }> {
   if (asset.contentType.includes("svg")) {
     return loadSvgImage(asset);
   }
@@ -533,7 +533,7 @@ async function loadRasterImage(asset) {
     }
   }
 }
-async function loadSvgImage(asset) {
+async function loadSvgImage(asset: ImageAsset): Promise<{ drawable: HTMLImageElement; width: number; height: number }> {
   const normalized = normalizeSvgMarkup2(bytesToUtf8String(asset.bytes));
   const image = await loadImageFromUrl2(
     `data:image/svg+xml;base64,${stringToBase642(normalized.markup)}`,
@@ -546,7 +546,7 @@ async function loadSvgImage(asset) {
     height: normalized.height
   };
 }
-async function convertAssetToPng(asset) {
+async function convertAssetToPng(asset: ImageAsset): Promise<ImageAsset> {
   const nativeImage = getElectronNativeImage();
   if (nativeImage) {
     const image = createElectronImageFromAsset(nativeImage, asset);
@@ -592,7 +592,7 @@ async function convertAssetToPng(asset) {
     filename: asset.filename.replace(/\.[^.]+$/, "") + ".png"
   };
 }
-async function convertAssetToJpeg(asset, options3) {
+async function convertAssetToJpeg(asset: ImageAsset, options3?: { maxWidth?: number; maxHeight?: number; quality?: number }): Promise<ImageAsset> {
   const nativeImage = getElectronNativeImage();
   if (nativeImage) {
     let image = createElectronImageFromAsset(nativeImage, asset);
@@ -668,7 +668,7 @@ async function convertAssetToJpeg(asset, options3) {
     filename: asset.filename.replace(/\.[^.]+$/, "") + ".jpg"
   };
 }
-async function normalizeWechatAsset(asset) {
+async function normalizeWechatAsset(asset: ImageAsset): Promise<ImageAsset> {
   const tooLarge = asset.bytes.byteLength > ARTICLE_MAX_BYTES;
   if (isWechatPreferredArticleImageType(asset.contentType) && !tooLarge) {
     return asset;
@@ -699,14 +699,14 @@ async function normalizeWechatAsset(asset) {
     quality: ARTICLE_JPEG_QUALITY
   });
 }
-async function normalizeWechatCoverAsset(asset) {
+async function normalizeWechatCoverAsset(asset: ImageAsset): Promise<ImageAsset> {
   return convertAssetToJpeg(asset, {
     maxWidth: COVER_MAX_WIDTH,
     maxHeight: COVER_MAX_HEIGHT,
     quality: COVER_JPEG_QUALITY
   });
 }
-async function forceSafeWechatAsset(endpoint, asset) {
+async function forceSafeWechatAsset(endpoint: string, asset: ImageAsset): Promise<ImageAsset> {
   if (endpoint === "material") {
     return normalizeWechatCoverAsset(asset);
   }
@@ -716,7 +716,7 @@ async function forceSafeWechatAsset(endpoint, asset) {
     quality: ARTICLE_JPEG_QUALITY
   });
 }
-function buildMultipartBody(asset) {
+function buildMultipartBody(asset: ImageAsset): { body: ArrayBuffer; contentType: string } {
   const boundary = `----WeiXinMp${Date.now().toString(16)}`;
   const encoder = new TextEncoder();
   const header = encoder.encode(
@@ -738,7 +738,7 @@ Content-Type: ${asset.contentType}\r
     contentType: `multipart/form-data; boundary=${boundary}`
   };
 }
-async function runWithTimeout(task, timeoutMs, label) {
+async function runWithTimeout<T>(task: Promise<T>, timeoutMs: number, label: string): Promise<T> {
   let timeoutId = null;
   try {
     return await Promise.race([
@@ -755,7 +755,7 @@ async function runWithTimeout(task, timeoutMs, label) {
     }
   }
 }
-function buildWechatRequest(account, originalUrl, init3) {
+function buildWechatRequest(account: PublisherAccount, originalUrl: string, init3?: any): any {
   if (account?.apiKey) {
     const urlObj = new URL(originalUrl);
     urlObj.searchParams.delete("access_token");
@@ -787,7 +787,7 @@ function buildWechatRequest(account, originalUrl, init3) {
   };
 }
 
-async function requestWechatJson(url, init3) {
+async function requestWechatJson(url: string, init3?: any): Promise<any> {
   const account = init3?.account;
   const req = buildWechatRequest(account, url, init3);
   const response = await runWithTimeout(
@@ -804,13 +804,13 @@ async function requestWechatJson(url, init3) {
   }
   return data6;
 }
-function isInvalidImageFormatError(error3) {
+function isInvalidImageFormatError(error3: unknown): boolean {
   if (!(error3 instanceof Error)) {
     return false;
   }
   return /invalid image format/i.test(error3.message) || /invalid image size/i.test(error3.message) || /\(40137\)/.test(error3.message) || /\(40009\)/.test(error3.message);
 }
-async function getAccessToken(account) {
+async function getAccessToken(account: PublisherAccount): Promise<string> {
   const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${encodeURIComponent(account.appId)}&secret=${encodeURIComponent(account.appSecret)}`;
   let data6 = await requestWechatJson(url, {
     account,
@@ -821,7 +821,7 @@ async function getAccessToken(account) {
   }
   return data6.access_token;
 }
-async function fetchBinaryAsset(url) {
+async function fetchBinaryAsset(url: string): Promise<ImageAsset> {
   if (url.startsWith("data:")) {
     const parsed = parseDataUrl(url);
     if (!parsed) {
@@ -870,7 +870,7 @@ async function fetchBinaryAsset(url) {
     sourceUrl: url
   };
 }
-async function readBinaryAssetFromAdapterPath(app, rawPath) {
+async function readBinaryAssetFromAdapterPath(app: any, rawPath: string): Promise<ImageAsset | null> {
   const normalizedPath = (0, import_obsidian9.normalizePath)(decodeURIComponent(rawPath.trim()));
   const mimeType = getMimeTypeByPath2(normalizedPath);
   if (!mimeType || !await app.vault.adapter.exists(normalizedPath)) {
@@ -886,7 +886,7 @@ async function readBinaryAssetFromAdapterPath(app, rawPath) {
     filePath: safeGetAdapterFullPath(app, normalizedPath)
   };
 }
-async function resolveVaultBinaryAsset(app, sourceFile, rawLink) {
+async function resolveVaultBinaryAsset(app: any, sourceFile: any, rawLink: string): Promise<ImageAsset | null> {
   const file = findVaultFile2(app, sourceFile, rawLink);
   if (!(file instanceof import_obsidian9.TFile)) {
     return null;
@@ -904,7 +904,7 @@ async function resolveVaultBinaryAsset(app, sourceFile, rawLink) {
     filePath: safeGetAdapterFullPath(app, file.path)
   };
 }
-async function resolveCoverAsset(app, file, coverValue) {
+async function resolveCoverAsset(app: any, file: any, coverValue: string): Promise<ImageAsset> {
   if (/^(https?:|data:)/i.test(coverValue)) {
     return fetchBinaryAsset(coverValue);
   }
@@ -937,7 +937,7 @@ async function resolveCoverAsset(app, file, coverValue) {
   }
   return fetchBinaryAsset(resolvedCoverUrl);
 }
-async function resolveArticleImageAsset(app, file, source) {
+async function resolveArticleImageAsset(app: any, file: any, source: string): Promise<ImageAsset> {
   if (source.startsWith("blob:")) {
     const response = await fetch(source);
     const blob = await response.blob();
@@ -981,7 +981,7 @@ async function resolveArticleImageAsset(app, file, source) {
   }
   throw new Error(`无法解析本地图片路径：${source}`);
 }
-async function uploadWechatImage(account, accessToken, endpoint, asset) {
+async function uploadWechatImage(account: PublisherAccount, accessToken: string, endpoint: string, asset: ImageAsset): Promise<string> {
   const uploadUrl = endpoint === "uploadimg" ? `https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=${accessToken}` : `https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=${accessToken}&type=image`;
   const requestLabel = endpoint === "uploadimg" ? "上传正文图片" : "上传封面";
   let normalizedAsset;
@@ -992,7 +992,7 @@ async function uploadWechatImage(account, accessToken, endpoint, asset) {
       `${endpoint === "material" ? "封面图片预处理失败" : "正文图片预处理失败"}：${error3 instanceof Error ? error3.message : "未知错误"}；文件：${asset.filename}；类型：${asset.contentType}${asset.filePath ? `；文件路径：${previewSource(asset.filePath)}` : ""}${asset.sourceUrl ? `；来源：${previewSource(asset.sourceUrl)}` : ""}`
     );
   }
-  const attemptUpload = async (currentAsset) => {
+  const attemptUpload = async (currentAsset: ImageAsset): Promise<any> => {
     const payload = buildMultipartBody(currentAsset);
     return requestWechatJson(uploadUrl, {
       account,
@@ -1041,7 +1041,7 @@ async function uploadWechatImage(account, accessToken, endpoint, asset) {
   }
   return data6.media_id;
 }
-async function rehostArticleImages(app, file, html5, accessToken, account, articleImageRecords, onProgress) {
+async function rehostArticleImages(app: any, file: any, html5: string, accessToken: string, account: PublisherAccount, articleImageRecords: ArticleImageRecord[], onProgress?: (message: string) => void): Promise<RehostResult> {
   const document2 = new DOMParser().parseFromString(html5, "text/html");
   const imageElements = Array.from(document2.querySelectorAll("img"));
   const refs = extractHtmlImageRefs(html5);
@@ -1103,13 +1103,13 @@ async function rehostArticleImages(app, file, html5, accessToken, account, artic
     articleImageRecords: records
   };
 }
-function pickTitle(file, frontmatter) {
+function pickTitle(file: any, frontmatter: any): string {
   if (typeof frontmatter.title === "string" && frontmatter.title.trim()) {
     return frontmatter.title.trim();
   }
   return file.basename;
 }
-async function resolveExistingDraft(accessToken, account, options3) {
+async function resolveExistingDraft(accessToken: string, account: PublisherAccount, options3: { mediaId?: string | null; title?: string }): Promise<any | null> {
   const normalizedMediaId = options3.mediaId?.trim() ?? "";
   const normalizedTitle = options3.title?.trim() ?? "";
   if (!normalizedTitle && !normalizedMediaId) {
@@ -1155,24 +1155,24 @@ async function resolveExistingDraft(accessToken, account, options3) {
   }
   return latestTitleMatch;
 }
-function isInvalidMediaIdError(error3) {
+function isInvalidMediaIdError(error3: unknown): boolean {
   if (!(error3 instanceof Error)) {
     return false;
   }
   return /invalid media_id/i.test(error3.message) || /\(40007\)/.test(error3.message);
 }
-function isMediaFileCountOutOfLimitError(error3) {
+function isMediaFileCountOutOfLimitError(error3: unknown): boolean {
   if (!(error3 instanceof Error)) {
     return false;
   }
   return /media file count is out of limit/i.test(error3.message) || /\(45034\)/.test(error3.message);
 }
-function createMaterialLimitError() {
+function createMaterialLimitError(): Error {
   return new Error(
     "公众号图片素材库已满，微信拒绝继续上传封面图。请到公众号后台「内容与互动 > 素材库」清理图片素材，或换用已缓存过的封面后重试。"
   );
 }
-async function validateWechatMaterialMediaId(accessToken, account, mediaId) {
+async function validateWechatMaterialMediaId(accessToken: string, account: PublisherAccount, mediaId: string): Promise<boolean> {
   const url = `https://api.weixin.qq.com/cgi-bin/material/get_material?access_token=${accessToken}`;
   const req = buildWechatRequest(account, url, {
     method: "POST",
@@ -1204,7 +1204,7 @@ async function validateWechatMaterialMediaId(accessToken, account, mediaId) {
   }
   throw new Error(`${data6.errmsg ?? "微信接口报错"} (${data6.errcode})`);
 }
-async function publishDraftToWechat(input) {
+async function publishDraftToWechat(input: PublishInput): Promise<PublishResult> {
   if (!input.account.appId || !input.account.appSecret) {
     throw new Error("当前账号缺少 AppID 或 AppSecret");
   }
