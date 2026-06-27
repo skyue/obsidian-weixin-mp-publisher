@@ -1,4 +1,4 @@
-var PublishModal = class extends import_obsidian10.Modal {
+const PublishModal = class extends import_obsidian10.Modal {
   constructor(plugin2, fileName) {
     super(plugin2.app);
     this.plugin = plugin2;
@@ -23,7 +23,7 @@ var PublishModal = class extends import_obsidian10.Modal {
     this.titleEl.setText("发布成功");
     this.contentEl.empty();
     this.contentEl.createDiv({ cls: "wechat-publish-publish-result", text: message });
-    var buttonContainer = this.contentEl.createDiv({ cls: "wechat-publish-publish-buttons" });
+    const buttonContainer = this.contentEl.createDiv({ cls: "wechat-publish-publish-buttons" });
     new import_obsidian10.Setting(buttonContainer).addButton((btn) => {
       btn.setButtonText("打开公众号后台").setCta().onClick(() => {
         this.plugin.openWechatPlatform();
@@ -37,13 +37,13 @@ var PublishModal = class extends import_obsidian10.Modal {
     this.titleEl.setText("发布失败");
     this.contentEl.empty();
     this.contentEl.createDiv({ cls: "wechat-publish-publish-result wechat-publish-publish-failure", text: message });
-    var buttonContainer = this.contentEl.createDiv({ cls: "wechat-publish-publish-buttons" });
+    const buttonContainer = this.contentEl.createDiv({ cls: "wechat-publish-publish-buttons" });
     new import_obsidian10.Setting(buttonContainer).addButton((btn) => {
       btn.setButtonText("关闭").setCta().onClick(() => this.close());
     });
   }
 };
-var WeChatMpPublisherPlugin = class extends import_obsidian10.Plugin {
+const WeChatMpPublisherPlugin = class extends import_obsidian10.Plugin {
   settings = DEFAULT_SETTINGS;
   themes = BUILTIN_THEMES;
   styleProfiles = BUILTIN_STYLE_PROFILES;

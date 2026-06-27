@@ -1,4 +1,4 @@
-var import_obsidian = require("obsidian");
+const import_obsidian = require("obsidian");
 
 
 function runAsync(action) {
@@ -32,7 +32,7 @@ function addSecretTextField(setting, value2, onChange) {
     });
   });
 }
-var AccountConfigModal = class extends import_obsidian.Modal {
+const AccountConfigModal = class extends import_obsidian.Modal {
   constructor(plugin23) {
     super(plugin23.app);
     this.plugin = plugin23;

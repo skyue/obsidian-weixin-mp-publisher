@@ -53,8 +53,8 @@ for (const rel of SOURCE_FILES) {
   // Fix potential double Obsidian.Obsidian
   content = content.replace(/\bObsidian\.Obsidian\b/g, 'Obsidian');
 
-  // Drop `var import_juice = __toESM(require_client(), 1);`
-  content = content.replace(/^var\s+import_juice\s*=\s*__toESM\(require_client\(\),\s*1\);?\s*$/gm, '');
+  // Drop `var|let|const import_juice = __toESM(require_client(), 1);`
+  content = content.replace(/^(?:var|let|const)\s+import_juice\s*=\s*__toESM\(require_client\(\),\s*1\);?\s*$/gm, '');
 
   // Replace `import_juice.default.` with `juice.`
   content = content.replace(/\bimport_juice\.default\b/g, 'juice');
@@ -100,7 +100,7 @@ const imports = [
   "import typescript from 'highlight.js/lib/languages/typescript';",
   "import xml from 'highlight.js/lib/languages/xml';",
   "import yaml from 'highlight.js/lib/languages/yaml';",
-  "var core_default = hljs;",
+  "const core_default = hljs;",
   '',
   '// MathJax is loaded dynamically at runtime via import() calls in markdown-pipeline.',
   '// They are listed here so esbuild knows to bundle them.',

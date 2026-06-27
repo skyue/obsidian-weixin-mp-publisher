@@ -1,4 +1,4 @@
-var import_obsidian5 = require("obsidian");
+const import_obsidian5 = require("obsidian");
 function runAsync3(action) {
   void action().catch((error3) => {
     console.error(error3);
@@ -32,7 +32,7 @@ function addSecretTextField2(setting, value2, onChange) {
     });
   });
 }
-var WeChatMpPublisherSettingTab = class extends import_obsidian5.PluginSettingTab {
+const WeChatMpPublisherSettingTab = class extends import_obsidian5.PluginSettingTab {
   constructor(app, plugin23) {
     super(app, plugin23);
     this.plugin = plugin23;

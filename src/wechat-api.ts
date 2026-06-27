@@ -1,16 +1,16 @@
-var import_obsidian9 = require("obsidian");
-var PLACEHOLDER_PNG_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACWCAIAAAAUvlBOAAABmElEQVR4nO3SQQkAIADAQBObxDgGtIRDkIMLsMfGXBuuG88L+JKxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIvEAXiM4h0Wv2iTAAAAAElFTkSuQmCC";
-var RELAY_BASE_URL = "https://mp.skyue.com/api/proxy";
-var REQUEST_TIMEOUT_MS = 45e3;
-var UPLOAD_TIMEOUT_MS = 12e4;
-var COVER_MAX_WIDTH = 1280;
-var COVER_MAX_HEIGHT = 1280;
-var COVER_JPEG_QUALITY = 0.82;
-var ARTICLE_MAX_BYTES = 9e5;
-var ARTICLE_MAX_WIDTH = 1920;
-var ARTICLE_MAX_HEIGHT = 1920;
-var ARTICLE_JPEG_QUALITY = 0.85;
-var IMAGE_EXTENSIONS2 = /* @__PURE__ */ new Map([
+const import_obsidian9 = require("obsidian");
+const PLACEHOLDER_PNG_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACWCAIAAAAUvlBOAAABmElEQVR4nO3SQQkAIADAQBObxDgGtIRDkIMLsMfGXBuuG88L+JKxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIvEAXiM4h0Wv2iTAAAAAElFTkSuQmCC";
+const RELAY_BASE_URL = "https://mp.skyue.com/api/proxy";
+const REQUEST_TIMEOUT_MS = 45e3;
+const UPLOAD_TIMEOUT_MS = 12e4;
+const COVER_MAX_WIDTH = 1280;
+const COVER_MAX_HEIGHT = 1280;
+const COVER_JPEG_QUALITY = 0.82;
+const ARTICLE_MAX_BYTES = 9e5;
+const ARTICLE_MAX_WIDTH = 1920;
+const ARTICLE_MAX_HEIGHT = 1920;
+const ARTICLE_JPEG_QUALITY = 0.85;
+const IMAGE_EXTENSIONS2 = /* @__PURE__ */ new Map([
   ["png", "image/png"],
   ["jpg", "image/jpeg"],
   ["jpeg", "image/jpeg"],
@@ -69,7 +69,7 @@ function extractHtmlImageRefs(html5) {
   return refs;
 }
 function extractFirstHtmlImageUrl(html5) {
-  var ref = extractHtmlImageRefs(html5)[0];
+  const ref = extractHtmlImageRefs(html5)[0];
   if (!ref) return null;
   return ref.originalSource || ref.src;
 }
@@ -82,7 +82,7 @@ function parseDataUrl(dataUrl) {
     return null;
   }
   const header = dataUrl.slice("data:".length, commaIndex);
-  const data6 = dataUrl.slice(commaIndex + 1);
+  let data6 = dataUrl.slice(commaIndex + 1);
   const headerParts = header.split(";").map((part) => part.trim()).filter(Boolean);
   const mimeType = headerParts.find((part) => part.includes("/"))?.toLowerCase() ?? "application/octet-stream";
   return {
@@ -757,12 +757,12 @@ async function runWithTimeout(task, timeoutMs, label) {
 }
 function buildWechatRequest(account, originalUrl, init3) {
   if (account?.apiKey) {
-    var urlObj = new URL(originalUrl);
+    const urlObj = new URL(originalUrl);
     urlObj.searchParams.delete("access_token");
     urlObj.searchParams.delete("secret");
     urlObj.searchParams.delete("appid");
     urlObj.searchParams.delete("grant_type");
-    var wechatPath2 = urlObj.pathname + urlObj.search;
+    const wechatPath2 = urlObj.pathname + urlObj.search;
     return {
       url: RELAY_BASE_URL,
       method: "POST",
@@ -788,14 +788,14 @@ function buildWechatRequest(account, originalUrl, init3) {
 }
 
 async function requestWechatJson(url, init3) {
-  var account = init3?.account;
-  var req = buildWechatRequest(account, url, init3);
-  var response = await runWithTimeout(
+  const account = init3?.account;
+  const req = buildWechatRequest(account, url, init3);
+  const response = await runWithTimeout(
     (0, import_obsidian9.requestUrl)(req),
     init3?.timeoutMs ?? REQUEST_TIMEOUT_MS,
     init3?.requestLabel ?? "微信请求"
   );
-  const data6 = response.json;
+  let data6 = response.json;
   if (response.status >= 400) {
     throw new Error(`HTTP ${response.status}: ${response.text}`);
   }
@@ -811,8 +811,8 @@ function isInvalidImageFormatError(error3) {
   return /invalid image format/i.test(error3.message) || /invalid image size/i.test(error3.message) || /\(40137\)/.test(error3.message) || /\(40009\)/.test(error3.message);
 }
 async function getAccessToken(account) {
-  var url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${encodeURIComponent(account.appId)}&secret=${encodeURIComponent(account.appSecret)}`;
-  var data6 = await requestWechatJson(url, {
+  const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${encodeURIComponent(account.appId)}&secret=${encodeURIComponent(account.appSecret)}`;
+  let data6 = await requestWechatJson(url, {
     account,
     requestLabel: "获取 access_token"
   });
@@ -910,9 +910,9 @@ async function resolveCoverAsset(app, file, coverValue) {
   }
   if (/^app:\/\//i.test(coverValue)) {
     try {
-      var appUrl = new URL(coverValue);
-      var rawPath2 = decodeURIComponent(appUrl.pathname.replace(/^\//, ""));
-      var localAsset2 = await readBinaryAssetFromAdapterPath(app, rawPath2);
+      const appUrl = new URL(coverValue);
+      const rawPath2 = decodeURIComponent(appUrl.pathname.replace(/^\//, ""));
+      const localAsset2 = await readBinaryAssetFromAdapterPath(app, rawPath2);
       if (localAsset2) return localAsset2;
     } catch (_2) {
     }
@@ -928,9 +928,9 @@ async function resolveCoverAsset(app, file, coverValue) {
   const resolvedCoverUrl = await resolveAssetLinkForWechat(app, file, coverValue) ?? coverValue;
   if (/^app:\/\//i.test(resolvedCoverUrl)) {
     try {
-      var resolvedUrl = new URL(resolvedCoverUrl);
-      var resolvedRawPath = decodeURIComponent(resolvedUrl.pathname.replace(/^\//, ""));
-      var assetFromResolved = await readBinaryAssetFromAdapterPath(app, resolvedRawPath);
+      const resolvedUrl = new URL(resolvedCoverUrl);
+      const resolvedRawPath = decodeURIComponent(resolvedUrl.pathname.replace(/^\//, ""));
+      const assetFromResolved = await readBinaryAssetFromAdapterPath(app, resolvedRawPath);
       if (assetFromResolved) return assetFromResolved;
     } catch (_2) {
     }
@@ -982,9 +982,9 @@ async function resolveArticleImageAsset(app, file, source) {
   throw new Error(`无法解析本地图片路径：${source}`);
 }
 async function uploadWechatImage(account, accessToken, endpoint, asset) {
-  var uploadUrl = endpoint === "uploadimg" ? `https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=${accessToken}` : `https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=${accessToken}&type=image`;
-  var requestLabel = endpoint === "uploadimg" ? "上传正文图片" : "上传封面";
-  var normalizedAsset;
+  const uploadUrl = endpoint === "uploadimg" ? `https://api.weixin.qq.com/cgi-bin/media/uploadimg?access_token=${accessToken}` : `https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=${accessToken}&type=image`;
+  const requestLabel = endpoint === "uploadimg" ? "上传正文图片" : "上传封面";
+  let normalizedAsset;
   try {
     normalizedAsset = endpoint === "material" ? await normalizeWechatCoverAsset(asset) : await normalizeWechatAsset(asset);
   } catch (error3) {
@@ -992,8 +992,8 @@ async function uploadWechatImage(account, accessToken, endpoint, asset) {
       `${endpoint === "material" ? "封面图片预处理失败" : "正文图片预处理失败"}：${error3 instanceof Error ? error3.message : "未知错误"}；文件：${asset.filename}；类型：${asset.contentType}${asset.filePath ? `；文件路径：${previewSource(asset.filePath)}` : ""}${asset.sourceUrl ? `；来源：${previewSource(asset.sourceUrl)}` : ""}`
     );
   }
-  var attemptUpload = async (currentAsset) => {
-    var payload = buildMultipartBody(currentAsset);
+  const attemptUpload = async (currentAsset) => {
+    const payload = buildMultipartBody(currentAsset);
     return requestWechatJson(uploadUrl, {
       account,
       method: "POST",
@@ -1045,7 +1045,7 @@ async function rehostArticleImages(app, file, html5, accessToken, account, artic
   const document2 = new DOMParser().parseFromString(html5, "text/html");
   const imageElements = Array.from(document2.querySelectorAll("img"));
   const refs = extractHtmlImageRefs(html5);
-  var records = articleImageRecords ? articleImageRecords.slice() : [];
+  const records = articleImageRecords ? articleImageRecords.slice() : [];
   console.debug(
     "[WeChat Publish] 发布前图片清单",
     refs.map((ref, index2) => ({
@@ -1072,8 +1072,8 @@ async function rehostArticleImages(app, file, html5, accessToken, account, artic
         `第 ${index2 + 1} 张正文图片读取失败：${error3 instanceof Error ? error3.message : "未知错误"}；来源：${(ref.originalSource ?? ref.src).slice(0, 120)}${ref.originalSource ? `；原始来源：${ref.originalSource.slice(0, 120)}` : ""}${mappedSource ? `；映射来源：${mappedSource.slice(0, 120)}` : ""}`
       );
     }
-    var sourceKey = await createCoverMediaSourceKey(asset);
-    var cachedRecord = records.find(function(r) {
+    const sourceKey = await createCoverMediaSourceKey(asset);
+    const cachedRecord = records.find(function(r) {
       return r.accountId === account.id && r.sourceKey === sourceKey;
     });
     let wechatUrl;
@@ -1119,7 +1119,7 @@ async function resolveExistingDraft(accessToken, account, options3) {
   const pageSize = 20;
   let latestTitleMatch = null;
   while (offset < 200) {
-    const data6 = await requestWechatJson(`https://api.weixin.qq.com/cgi-bin/draft/batchget?access_token=${accessToken}`, {
+    let data6 = await requestWechatJson(`https://api.weixin.qq.com/cgi-bin/draft/batchget?access_token=${accessToken}`, {
       account,
       method: "POST",
       body: JSON.stringify({
@@ -1195,7 +1195,7 @@ async function validateWechatMaterialMediaId(accessToken, account, mediaId) {
   if (!maybeJson) {
     return true;
   }
-  const data6 = response.json;
+  let data6 = response.json;
   if (typeof data6?.errcode !== "number" || data6.errcode === 0) {
     return true;
   }
@@ -1216,16 +1216,16 @@ async function publishDraftToWechat(input) {
     accessToken = await getAccessToken(input.account);
     input.onProgress?.("access_token 获取成功");
   }
-  var coverMediaRecord;
-  var coverAction = "existing-frontmatter";
-  var thumbMediaId = typeof input.frontmatter.thumb_media_id === "string" ? input.frontmatter.thumb_media_id.trim() : "";
+  let coverMediaRecord;
+  let coverAction = "existing-frontmatter";
+  let thumbMediaId = typeof input.frontmatter.thumb_media_id === "string" ? input.frontmatter.thumb_media_id.trim() : "";
   if (!thumbMediaId) {
-    var frontmatterCover = typeof input.frontmatter.cover === "string" && input.frontmatter.cover.trim() ? input.frontmatter.cover.trim() : "";
-    var defaultCoverPath = input.account.defaultCoverPath?.trim() ?? "";
-    var firstHtmlImageUrl = extractFirstHtmlImageUrl(input.html) ?? "";
-    var coverUrl = frontmatterCover || defaultCoverPath || firstHtmlImageUrl || PLACEHOLDER_PNG_DATA_URL;
+    const frontmatterCover = typeof input.frontmatter.cover === "string" && input.frontmatter.cover.trim() ? input.frontmatter.cover.trim() : "";
+    const defaultCoverPath = input.account.defaultCoverPath?.trim() ?? "";
+    const firstHtmlImageUrl = extractFirstHtmlImageUrl(input.html) ?? "";
+    const coverUrl = frontmatterCover || defaultCoverPath || firstHtmlImageUrl || PLACEHOLDER_PNG_DATA_URL;
     input.onProgress?.("正在处理封面图...");
-    var coverAsset;
+    let coverAsset;
     try {
       coverAsset = await resolveCoverAsset(input.app, input.file, coverUrl);
     } catch (error3) {
@@ -1235,8 +1235,8 @@ async function publishDraftToWechat(input) {
         )}${frontmatterCover ? "；来源类型：frontmatter.cover" : ""}${!frontmatterCover && defaultCoverPath ? "；来源类型：账号默认封面" : ""}${!frontmatterCover && !defaultCoverPath && firstHtmlImageUrl ? "；来源类型：正文第一张图" : ""}`
       );
     }
-    var coverSourceKey = await createCoverMediaSourceKey(coverAsset);
-    var cachedCover = input.coverMediaRecords?.find(
+    const coverSourceKey = await createCoverMediaSourceKey(coverAsset);
+    const cachedCover = input.coverMediaRecords?.find(
       function(record) { return record.accountId === input.account.id && record.sourceKey === coverSourceKey; }
     );
     if (cachedCover?.mediaId) {
@@ -1277,7 +1277,7 @@ async function publishDraftToWechat(input) {
     }
   }
   input.onProgress?.("正在处理正文图片...");
-  var rehostResult = await rehostArticleImages(
+  const rehostResult = await rehostArticleImages(
     input.app,
     input.file,
     input.html,
@@ -1286,13 +1286,13 @@ async function publishDraftToWechat(input) {
     input.articleImageRecords ?? [],
     input.onProgress
   );
-  var html5 = rehostResult.html;
-  var imageCount = rehostResult.imageCount;
-  var articleImageRecords = rehostResult.articleImageRecords;
-  var publishHtml = compactWechatHtmlForSubmit(html5);
-  var remainingDataImages = countRemainingDataImages(publishHtml);
-  var htmlBytes = new TextEncoder().encode(publishHtml).length;
-  var WECHAT_CONTENT_SIZE_LIMIT = 1e6;
+  const html5 = rehostResult.html;
+  const imageCount = rehostResult.imageCount;
+  const articleImageRecords = rehostResult.articleImageRecords;
+  const publishHtml = compactWechatHtmlForSubmit(html5);
+  const remainingDataImages = countRemainingDataImages(publishHtml);
+  const htmlBytes = new TextEncoder().encode(publishHtml).length;
+  const WECHAT_CONTENT_SIZE_LIMIT = 1e6;
   if (htmlBytes > WECHAT_CONTENT_SIZE_LIMIT) {
     throw new Error(
       `文章内容过长（${(htmlBytes / 1024).toFixed(0)} KB），超出微信草稿接口上限（约 1 MB）。建议拆分文章或减少内容后重试。`
@@ -1351,7 +1351,7 @@ async function publishDraftToWechat(input) {
     }
   }
   input.onProgress?.(`${coverProgressPrefix}，正在提交草稿到微信...`);
-  const data6 = await requestWechatJson(
+  let data6 = await requestWechatJson(
     `https://api.weixin.qq.com/cgi-bin/draft/add?access_token=${accessToken}`,
     {
       account: input.account,

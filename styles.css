@@ -1194,3 +1194,15 @@
 .wechat-publish-publish-modal .wechat-publish-publish-buttons {
   margin-top: 12px;
 }
+
+/* Hidden render host — positioned off-screen for MathJax/Mermaid */
+.wechat-publish-hidden-host {
+  position: fixed;
+  left: -99999px;
+  top: -99999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+  overflow: hidden;
+}

@@ -1,7 +1,7 @@
-var import_obsidian4 = require("obsidian");
-var PREVIEW_VIEW_TYPE = "wechat-publish-preview";
-var SVG_NS = "http://www.w3.org/2000/svg";
-var WeChatMpPublisherPreviewView = class extends import_obsidian4.ItemView {
+const import_obsidian4 = require("obsidian");
+const PREVIEW_VIEW_TYPE = "wechat-publish-preview";
+const SVG_NS = "http://www.w3.org/2000/svg";
+const WeChatMpPublisherPreviewView = class extends import_obsidian4.ItemView {
   constructor(leaf, plugin23) {
     super(leaf);
     this.plugin = plugin23;
@@ -750,7 +750,8 @@ var WeChatMpPublisherPreviewView = class extends import_obsidian4.ItemView {
       `${payload.file.path} \xB7 主题 ${payload.theme.label} \xB7 排版 ${payload.styleProfile.label} \xB7 图片 ${payload.result.metadata.images.length} 张`
     );
     const articleEl = this.previewEl.createDiv({ cls: "wp-article" });
-    articleEl.innerHTML = payload.result.html;
+    articleEl.empty();
+    articleEl.insertAdjacentHTML("beforeend", payload.result.html);
     this.updateMetaCard(publishMetaDraft);
   }
   setMetaCardEmpty() {
@@ -932,7 +933,7 @@ var WeChatMpPublisherPreviewView = class extends import_obsidian4.ItemView {
     return svg2;
   }
 };
-var ICON_PATHS = {
+const ICON_PATHS = {
   send: [
     { tag: "path", attrs: { d: "M22 2L11 13" } },
     { tag: "path", attrs: { d: "M22 2L15 22L11 13L2 9L22 2Z" } }

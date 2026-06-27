@@ -1,4 +1,4 @@
-var BUILTIN_THEMES = [
+let BUILTIN_THEMES = [
   {
     id: "classic",
     label: "经典蓝",
@@ -350,7 +350,7 @@ var BUILTIN_THEMES = [
 function getThemeById(themeId) {
   return BUILTIN_THEMES.find((theme) => theme.id === themeId) ?? BUILTIN_THEMES[0];
 }
-var BUILTIN_STYLE_PROFILES = [
+let BUILTIN_STYLE_PROFILES = [
   {
     id: "balanced",
     label: "均衡版",

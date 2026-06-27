@@ -1,5 +1,5 @@
-var import_obsidian3 = require("obsidian");
-var IMAGE_EXTENSIONS = /* @__PURE__ */ new Map([
+const import_obsidian3 = require("obsidian");
+const IMAGE_EXTENSIONS = /* @__PURE__ */ new Map([
   ["png", "image/png"],
   ["jpg", "image/jpeg"],
   ["jpeg", "image/jpeg"],
@@ -8,11 +8,11 @@ var IMAGE_EXTENSIONS = /* @__PURE__ */ new Map([
   ["svg", "image/svg+xml"],
   ["bmp", "image/bmp"]
 ]);
-var mermaidPromise = null;
-var mathJaxContextPromise = null;
-var RESOLVED_ASSET_SOURCE_MAP = /* @__PURE__ */ new Map();
-var RESOLVED_ASSET_SOURCE_PREFIX_MAP = /* @__PURE__ */ new Map();
-var RESOLVED_ASSET_PREFIX_LENGTH = 256;
+let mermaidPromise = null;
+let mathJaxContextPromise = null;
+const RESOLVED_ASSET_SOURCE_MAP = /* @__PURE__ */ new Map();
+const RESOLVED_ASSET_SOURCE_PREFIX_MAP = /* @__PURE__ */ new Map();
+const RESOLVED_ASSET_PREFIX_LENGTH = 256;
 function rememberResolvedAssetSource(resolvedUrl, originalPath) {
   RESOLVED_ASSET_SOURCE_MAP.set(resolvedUrl, originalPath);
   RESOLVED_ASSET_SOURCE_PREFIX_MAP.set(
@@ -275,15 +275,7 @@ async function getMathJaxContext() {
 }
 function createHiddenRenderHost(className) {
   const host = document.createElement("div");
-  host.className = className;
-  host.style.position = "fixed";
-  host.style.left = "-99999px";
-  host.style.top = "-99999px";
-  host.style.width = "1px";
-  host.style.height = "1px";
-  host.style.opacity = "0";
-  host.style.pointerEvents = "none";
-  host.style.overflow = "hidden";
+  host.className = `wechat-publish-hidden-host ${className}`;
   document.body.appendChild(host);
   return host;
 }

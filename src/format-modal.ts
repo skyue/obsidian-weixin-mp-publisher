@@ -1,11 +1,11 @@
-var import_obsidian2 = require("obsidian");
+const import_obsidian2 = require("obsidian");
 function runAsync2(action) {
   void action().catch((error3) => {
     console.error(error3);
     new import_obsidian2.Notice(`操作失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
   });
 }
-var FormatModal = class extends import_obsidian2.Modal {
+const FormatModal = class extends import_obsidian2.Modal {
   constructor(plugin23) {
     super(plugin23.app);
     this.plugin = plugin23;

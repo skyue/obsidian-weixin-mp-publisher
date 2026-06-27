@@ -1,39 +1,39 @@
-var import_obsidian7 = require("obsidian");
-var FONT_PRESET_OPTIONS = [
+const import_obsidian7 = require("obsidian");
+const FONT_PRESET_OPTIONS = [
   { value: "theme-default", label: "跟随当前主题" },
   { value: "sans", label: "无衬线" },
   { value: "serif", label: "衬线" },
   { value: "mono", label: "等宽" },
   { value: "rounded", label: "圆润" }
 ];
-var H1_STYLE_OPTIONS = [
+const H1_STYLE_OPTIONS = [
   { value: "underline", label: "居中下划线" },
   { value: "solid", label: "整块色带" },
   { value: "outline", label: "描边圆角框" }
 ];
-var H2_STYLE_OPTIONS = [
+const H2_STYLE_OPTIONS = [
   { value: "solid", label: "整块色带" },
   { value: "plain", label: "左侧竖线" },
   { value: "capsule", label: "胶囊标签" }
 ];
-var H3_STYLE_OPTIONS = [
+const H3_STYLE_OPTIONS = [
   { value: "bar", label: "左侧竖线" },
   { value: "capsule", label: "浅底胶囊" },
   { value: "plain", label: "纯文字强调" }
 ];
-var H4_STYLE_OPTIONS = [
+const H4_STYLE_OPTIONS = [
   { value: "accent", label: "浅底标签" },
   { value: "plain", label: "纯文字强调" },
   { value: "eyebrow", label: "细下划线" }
 ];
-var CALLOUT_STYLE_OPTIONS = [
+const CALLOUT_STYLE_OPTIONS = [
   { value: "card-soft", label: "柔和卡片（推荐）" },
   { value: "card-rounded", label: "包裹 + 圆角" },
   { value: "card-square", label: "包裹 + 方角" },
   { value: "bar-rounded", label: "不包裹 + 圆角" },
   { value: "bar-square", label: "不包裹 + 方角" }
 ];
-var FIGURE_CAPTION_OPTIONS = [
+const FIGURE_CAPTION_OPTIONS = [
   { value: "title-first", label: "title 优先" },
   { value: "alt-first", label: "alt 优先" },
   { value: "alt-only", label: "只显示 alt" },
@@ -117,7 +117,7 @@ function addNumberField(options3) {
     });
   });
 }
-var StyleConfigModal = class extends import_obsidian7.Modal {
+const StyleConfigModal = class extends import_obsidian7.Modal {
   constructor(plugin23) {
     super(plugin23.app);
     this.plugin = plugin23;
