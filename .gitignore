@@ -1,5 +1,6 @@
 node_modules/
 dist/
 src/_bundle.ts
+main.js
 *.zip
 .DS_Store
