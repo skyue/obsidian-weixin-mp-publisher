@@ -751,7 +751,9 @@ const WeiXinMpPublisherPreviewView = class extends import_obsidian4.ItemView {
     );
     const articleEl = this.previewEl.createDiv({ cls: "wp-article" });
     articleEl.empty();
-    articleEl.insertAdjacentHTML("beforeend", payload.result.html);
+    const range = document.createRange();
+    range.selectNode(articleEl);
+    articleEl.appendChild(range.createContextualFragment(payload.result.html));
     this.updateMetaCard(publishMetaDraft);
   }
   setMetaCardEmpty() {
