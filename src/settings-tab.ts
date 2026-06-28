@@ -112,10 +112,25 @@ export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
         account.appSecret = value2;
         await this.plugin.saveSettings();
       });
-      const apiKeySetting = new Setting(cardEl).setName("API Key").setDesc("使用中转服务 API Key，享有稳定 IP 地址和发布服务，中转服务不保存 AppSecret。");
+      const apiKeySetting = new Setting(cardEl).setName("API Key").setDesc("使用中转服务 API Key，享受稳定IP地址和发布服务，中转服务加密保存 AppID，绝不保存 AppSecret。");
       addSecretTextField2(apiKeySetting, account.apiKey ?? "", async (value2) => {
         account.apiKey = value2;
         await this.plugin.saveSettings();
+      });
+      apiKeySetting.addButton((button) => {
+        button.setButtonText("激活");
+        button.onClick(() => {
+          runAsync3(async () => {
+            const result = await this.plugin.bindApiKey(account);
+            if (result.success) {
+              apiKeySetting.setDesc("API Key 已激活，已绑定当前 AppID");
+              new Notice("API Key 激活成功");
+            } else {
+              apiKeySetting.setDesc(result.error ?? "激活失败");
+              new Notice(result.error ?? "激活失败");
+            }
+          });
+        });
       });
       const publicIpStatus = this.plugin.getPublicIpStatus();
       new Setting(cardEl).setName("IP 白名单辅助").setDesc(this.plugin.getPublicIpStatusText()).addButton((button) => {

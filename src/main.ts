@@ -311,15 +311,68 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       const checkedAt = this.publicIpStatus.checkedAt ? new Date(this.publicIpStatus.checkedAt).toLocaleString("zh-CN", {
         hour12: false
       }) : "刚刚";
+      if (this.publicIpStatus.sourceLabel === "中转服务") {
+        return `API Key 验证通过，IP 地址：${this.publicIpStatus.value} \xB7 检测时间 ${checkedAt}`;
+      }
       const sourceText = this.publicIpStatus.sourceLabel ? ` \xB7 来源 ${this.publicIpStatus.sourceLabel}` : "";
       return `当前公网 IP：${this.publicIpStatus.value}${sourceText} \xB7 检测时间 ${checkedAt}`;
     }
     if (this.publicIpStatus.error) {
+      if (this.publicIpStatus.error === "API Key无效") {
+        return "API Key无效";
+      }
       return `检测失败：${this.publicIpStatus.error}`;
     }
     return "用于微信 API 白名单。优先检测微信接口实际看到的出口 IP。";
   }
   async detectPublicIp(account) {
+    const targetAccount = account ?? this.getPreferredAccount();
+    if (targetAccount?.apiKey) {
+      try {
+        const response = await (0, requestUrl)({
+          url: "https://mp.skyue.com/api/ip",
+          method: "GET",
+          headers: {
+            "X-Api-Key": targetAccount.apiKey
+          },
+          throw: false
+        });
+        if (response.status === 401) {
+          this.publicIpStatus = {
+            value: null,
+            sourceLabel: null,
+            checkedAt: Date.now(),
+            error: "API Key无效"
+          };
+          throw new Error("API Key无效");
+        }
+        if (response.status >= 400) {
+          const message = response.json?.errmsg ?? response.text ?? `HTTP ${response.status}`;
+          this.publicIpStatus = {
+            value: null,
+            sourceLabel: null,
+            checkedAt: Date.now(),
+            error: message
+          };
+          throw new Error(message);
+        }
+        const data6 = response.json;
+        const ip = typeof data6?.ip === "string" && data6.ip.trim() ? data6.ip.trim() : null;
+        if (ip) {
+          this.publicIpStatus = {
+            value: ip,
+            sourceLabel: "中转服务",
+            checkedAt: Date.now(),
+            error: null
+          };
+          return ip;
+        }
+      } catch (error3) {
+        if (this.publicIpStatus.error) {
+          throw error3;
+        }
+      }
+    }
     const wechatIp = await this.detectWechatApiIp(account);
     if (wechatIp) {
       this.publicIpStatus = {
@@ -406,6 +459,43 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       return null;
     } catch {
       return null;
+    }
+  }
+  async bindApiKey(account) {
+    const apiKey = account?.apiKey?.trim();
+    const appId = account?.appId?.trim();
+    if (!apiKey || !appId) {
+      return { error: "请先填写 API Key 和 AppID" };
+    }
+    try {
+      const response = await (0, requestUrl)({
+        url: "https://mp.skyue.com/api/bind",
+        method: "POST",
+        headers: {
+          "X-Api-Key": apiKey,
+          "X-App-Id": appId
+        },
+        throw: false
+      });
+      if (response.status === 200) {
+        return { success: true };
+      }
+      if (response.status === 400) {
+        return { error: "激活失败：请先填写 API Key 和 AppID" };
+      }
+      if (response.status === 401) {
+        return { error: "API Key无效" };
+      }
+      if (response.status === 405) {
+        return { error: "激活失败：请求方式错误" };
+      }
+      if (response.status === 500) {
+        return { error: "激活失败：绑定写入失败，请稍后重试" };
+      }
+      const message = response.json?.errmsg ?? response.text ?? `HTTP ${response.status}`;
+      return { error: `激活失败：${message}` };
+    } catch (error3) {
+      return { error: `激活失败：${error3 instanceof Error ? error3.message : "网络错误"}` };
     }
   }
   async copyTextToClipboard(value2, successMessage = "已复制。") {
