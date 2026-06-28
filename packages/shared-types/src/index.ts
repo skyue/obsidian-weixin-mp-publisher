@@ -1,4 +1,4 @@
-function createEntitlementsForPlan(plan) {
+export function createEntitlementsForPlan(plan) {
   if (plan === "pro") {
     return {
       enabled: {

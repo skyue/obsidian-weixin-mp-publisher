@@ -1,11 +1,12 @@
-const import_obsidian2 = require("obsidian");
+import { Modal, Notice, Setting } from 'obsidian';
+import { getStyleProfileById } from '../packages/theme-pack/src/index.ts';
 function runAsync2(action) {
   void action().catch((error3) => {
     console.error(error3);
-    new import_obsidian2.Notice(`操作失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
+    new Notice(`操作失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
   });
 }
-const FormatModal = class extends import_obsidian2.Modal {
+export const FormatModal = class extends Modal {
   constructor(plugin23) {
     super(plugin23.app);
     this.plugin = plugin23;
@@ -30,7 +31,7 @@ const FormatModal = class extends import_obsidian2.Modal {
       "主题风格",
       "控制整体视觉气质，比如主色、标题外观、引用块和页面氛围。"
     );
-    new import_obsidian2.Setting(section).setName("当前主题风格").setDesc("适合先选气质，再决定排版。").addDropdown((dropdown) => {
+    new Setting(section).setName("当前主题风格").setDesc("适合先选气质，再决定排版。").addDropdown((dropdown) => {
       for (const theme of this.plugin.getAvailableThemes()) {
         dropdown.addOption(theme.id, `${theme.label} \xB7 ${theme.description}`);
       }
@@ -49,7 +50,7 @@ const FormatModal = class extends import_obsidian2.Modal {
       "排版模板",
       "控制字号、行高、留白和阅读节奏，不直接改变主题颜色。"
     );
-    new import_obsidian2.Setting(section).setName("当前排版模板").setDesc("适合文章、快讯、专栏等不同阅读场景。").addDropdown((dropdown) => {
+    new Setting(section).setName("当前排版模板").setDesc("适合文章、快讯、专栏等不同阅读场景。").addDropdown((dropdown) => {
       for (const styleProfile of this.plugin.styleProfiles) {
         dropdown.addOption(styleProfile.id, `${styleProfile.label} \xB7 ${styleProfile.description}`);
       }
@@ -75,19 +76,19 @@ const FormatModal = class extends import_obsidian2.Modal {
       });
     } else {
       for (const preset of this.plugin.settings.savedStylePresets) {
-        new import_obsidian2.Setting(section).setName(preset.name).setDesc(`排版模板：${getStyleProfileById(preset.baseStyleId).label}`).addButton((button) => {
+        new Setting(section).setName(preset.name).setDesc(`排版模板：${getStyleProfileById(preset.baseStyleId).label}`).addButton((button) => {
           button.setButtonText("套用");
           button.onClick(() => {
             runAsync2(async () => {
               await this.plugin.applySavedStylePreset(preset.id);
-              new import_obsidian2.Notice(`已套用格式方案：${preset.name}`);
+              new Notice(`已套用格式方案：${preset.name}`);
               this.onOpen();
             });
           });
         });
       }
     }
-    new import_obsidian2.Setting(section).setName("方案管理").setDesc("保存当前搭配、覆盖同名方案或删除旧方案。").addButton((button) => {
+    new Setting(section).setName("方案管理").setDesc("保存当前搭配、覆盖同名方案或删除旧方案。").addButton((button) => {
       button.setButtonText("管理我的方案");
       button.onClick(() => {
         this.close();
@@ -101,7 +102,7 @@ const FormatModal = class extends import_obsidian2.Modal {
       "高级微调",
       "细调字体、标题样式、引用块、代码块、图注和纸张颜色等参数。"
     );
-    new import_obsidian2.Setting(section).setName("打开高级微调").setDesc("适合需要做品牌化风格或保存新格式方案时使用。").addButton((button) => {
+    new Setting(section).setName("打开高级微调").setDesc("适合需要做品牌化风格或保存新格式方案时使用。").addButton((button) => {
       button.setButtonText("进入高级微调");
       button.setCta();
       button.onClick(() => {

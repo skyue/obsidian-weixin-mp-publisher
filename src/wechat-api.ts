@@ -1,4 +1,6 @@
-const import_obsidian9 = require("obsidian");
+import { TFile, requestUrl, normalizePath } from 'obsidian';
+import { HtmlImageRef, PublisherAccount, PublishInput, PublishResult, DraftRecord, CoverMediaRecord, ArticleImageRecord } from './types.ts';
+import { resolveAssetLinkForWechat, lookupOriginalAssetSource } from './markdown-pipeline.ts';
 const PLACEHOLDER_PNG_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACWCAIAAAAUvlBOAAABmElEQVR4nO3SQQkAIADAQBObxDgGtIRDkIMLsMfGXBuuG88L+JKxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIvEAXiM4h0Wv2iTAAAAAElFTkSuQmCC";
 const RELAY_BASE_URL = "https://mp.skyue.com/api/proxy";
 const REQUEST_TIMEOUT_MS = 45e3;
@@ -138,10 +140,10 @@ function findVaultFile2(app: any, sourceFile: any, rawLink: string): any | null 
     }
     const resolvedPath = parts.join("/");
     const resolvedFile = app.vault.getAbstractFileByPath(resolvedPath);
-    if (resolvedFile instanceof import_obsidian9.TFile) return resolvedFile;
+    if (resolvedFile instanceof TFile) return resolvedFile;
   }
   const direct = app.metadataCache.getFirstLinkpathDest(link3, sourceFile.path) ?? app.vault.getAbstractFileByPath(link3);
-  if (direct instanceof import_obsidian9.TFile) {
+  if (direct instanceof TFile) {
     return direct;
   }
   const basename = link3.split("/").pop()?.trim();
@@ -755,7 +757,7 @@ async function runWithTimeout<T>(task: Promise<T>, timeoutMs: number, label: str
     }
   }
 }
-function buildWechatRequest(account: PublisherAccount, originalUrl: string, init3?: any): any {
+export function buildWechatRequest(account: PublisherAccount, originalUrl: string, init3?: any): any {
   if (account?.apiKey) {
     const urlObj = new URL(originalUrl);
     urlObj.searchParams.delete("access_token");
@@ -791,7 +793,7 @@ async function requestWechatJson(url: string, init3?: any): Promise<any> {
   const account = init3?.account;
   const req = buildWechatRequest(account, url, init3);
   const response = await runWithTimeout(
-    (0, import_obsidian9.requestUrl)(req),
+    (0, requestUrl)(req),
     init3?.timeoutMs ?? REQUEST_TIMEOUT_MS,
     init3?.requestLabel ?? "微信请求"
   );
@@ -851,7 +853,7 @@ async function fetchBinaryAsset(url: string): Promise<ImageAsset> {
     };
   }
   const response = await runWithTimeout(
-    (0, import_obsidian9.requestUrl)({
+    (0, requestUrl)({
       url,
       method: "GET",
       throw: false
@@ -871,7 +873,7 @@ async function fetchBinaryAsset(url: string): Promise<ImageAsset> {
   };
 }
 async function readBinaryAssetFromAdapterPath(app: any, rawPath: string): Promise<ImageAsset | null> {
-  const normalizedPath = (0, import_obsidian9.normalizePath)(decodeURIComponent(rawPath.trim()));
+  const normalizedPath = (0, normalizePath)(decodeURIComponent(rawPath.trim()));
   const mimeType = getMimeTypeByPath2(normalizedPath);
   if (!mimeType || !await app.vault.adapter.exists(normalizedPath)) {
     return null;
@@ -888,7 +890,7 @@ async function readBinaryAssetFromAdapterPath(app: any, rawPath: string): Promis
 }
 async function resolveVaultBinaryAsset(app: any, sourceFile: any, rawLink: string): Promise<ImageAsset | null> {
   const file = findVaultFile2(app, sourceFile, rawLink);
-  if (!(file instanceof import_obsidian9.TFile)) {
+  if (!(file instanceof TFile)) {
     return null;
   }
   const mimeType = getMimeTypeByPath2(file.path);
@@ -1182,7 +1184,7 @@ async function validateWechatMaterialMediaId(accessToken: string, account: Publi
     }
   });
   const response = await runWithTimeout(
-    (0, import_obsidian9.requestUrl)(req),
+    (0, requestUrl)(req),
     UPLOAD_TIMEOUT_MS,
     "校验封面素材"
   );
@@ -1204,7 +1206,7 @@ async function validateWechatMaterialMediaId(accessToken: string, account: Publi
   }
   throw new Error(`${data6.errmsg ?? "微信接口报错"} (${data6.errcode})`);
 }
-async function publishDraftToWechat(input: PublishInput): Promise<PublishResult> {
+export async function publishDraftToWechat(input: PublishInput): Promise<PublishResult> {
   if (!input.account.appId || !input.account.appSecret) {
     throw new Error("当前账号缺少 AppID 或 AppSecret");
   }

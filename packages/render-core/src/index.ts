@@ -1,24 +1,35 @@
-let import_juice = __toESM(require_client(), 1);
+import juice from 'juice';
+import markdownit from 'markdown-it';
+import hljs from 'highlight.js';
+import bash from 'highlight.js/lib/languages/bash';
+import css from 'highlight.js/lib/languages/css';
+import javascript from 'highlight.js/lib/languages/javascript';
+import json from 'highlight.js/lib/languages/json';
+import markdownLang from 'highlight.js/lib/languages/markdown';
+import python from 'highlight.js/lib/languages/python';
+import typescript from 'highlight.js/lib/languages/typescript';
+import xml from 'highlight.js/lib/languages/xml';
+import yaml from 'highlight.js/lib/languages/yaml';
 
 let MAC_DOTS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 130" width="45" height="13" aria-hidden="true"><ellipse cx="50" cy="65" rx="50" ry="52" stroke="rgb(220,60,54)" stroke-width="2" fill="rgb(237,108,96)"/><ellipse cx="225" cy="65" rx="50" ry="52" stroke="rgb(218,151,33)" stroke-width="2" fill="rgb(247,193,81)"/><ellipse cx="400" cy="65" rx="50" ry="52" stroke="rgb(27,161,37)" stroke-width="2" fill="rgb(100,200,86)"/></svg>`;
-core_default.registerLanguage("bash", bash);
-core_default.registerLanguage("sh", bash);
-core_default.registerLanguage("shell", bash);
-core_default.registerLanguage("zsh", bash);
-core_default.registerLanguage("css", css);
-core_default.registerLanguage("javascript", javascript);
-core_default.registerLanguage("js", javascript);
-core_default.registerLanguage("json", json);
-core_default.registerLanguage("markdown", markdown);
-core_default.registerLanguage("md", markdown);
-core_default.registerLanguage("python", python);
-core_default.registerLanguage("py", python);
-core_default.registerLanguage("typescript", typescript);
-core_default.registerLanguage("ts", typescript);
-core_default.registerLanguage("xml", xml);
-core_default.registerLanguage("html", xml);
-core_default.registerLanguage("yaml", yaml);
-core_default.registerLanguage("yml", yaml);
+hljs.registerLanguage("bash", bash);
+hljs.registerLanguage("sh", bash);
+hljs.registerLanguage("shell", bash);
+hljs.registerLanguage("zsh", bash);
+hljs.registerLanguage("css", css);
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("js", javascript);
+hljs.registerLanguage("json", json);
+hljs.registerLanguage("markdown", markdownLang);
+hljs.registerLanguage("md", markdownLang);
+hljs.registerLanguage("python", python);
+hljs.registerLanguage("py", python);
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("ts", typescript);
+hljs.registerLanguage("xml", xml);
+hljs.registerLanguage("html", xml);
+hljs.registerLanguage("yaml", yaml);
+hljs.registerLanguage("yml", yaml);
 let GITHUB_DARK_HIGHLIGHT_CSS = `
 .hljs{color:#e6edf3;background:#0d1117}
 .hljs-comment,.hljs-quote{color:#8b949e}
@@ -116,7 +127,7 @@ function highlightCodeLine(line2, lang) {
     return "&nbsp;";
   }
   try {
-    const highlighted = lang && core_default.getLanguage(lang) ? core_default.highlight(line2, { language: lang, ignoreIllegals: true }).value : core_default.highlightAuto(line2).value;
+    const highlighted = lang && hljs.getLanguage(lang) ? hljs.highlight(line2, { language: lang, ignoreIllegals: true }).value : hljs.highlightAuto(line2).value;
     return preserveCodeWhitespace(highlighted);
   } catch {
     return preserveCodeWhitespace(escapeHtml(line2));
@@ -1022,7 +1033,7 @@ function buildTocHtml(headings) {
 function normalizeWechatHtml(html5) {
   return html5.replace(/<(ol|ul)([^>]*)>\s+/g, "<$1$2>").replace(/\s+<\/(ol|ul)>/g, "</$1>").replace(/<\/li>\s+(?=<li\b)/g, "</li>").replace(/<(li\b[^>]*)>\s+/g, "<$1>").replace(/\s+<\/li>/g, "</li>");
 }
-function renderMarkdownToWechatHtml(markdown2, options3) {
+export function renderMarkdownToWechatHtml(markdown2, options3) {
   const { content, data: data6 } = stripFrontmatter(markdown2);
   const normalizedContent = preprocessWechatMarkdown(content);
   const md = markdownit({ html: true, breaks: true, linkify: true });
@@ -1035,7 +1046,7 @@ function renderMarkdownToWechatHtml(markdown2, options3) {
   const rawHtml = parsedHtml.replace(/<section class="wxp-toc-placeholder"><\/section>/g, tocHtml);
   const wrappedHtml = `<section class="wxp-root">${rawHtml}</section>`;
   const html5 = normalizeWechatHtml(
-    import_juice.default.inlineContent(wrappedHtml, buildCss(options3.theme, options3.styleProfile), {
+    juice.inlineContent(wrappedHtml, buildCss(options3.theme, options3.styleProfile), {
       preserveImportant: true,
       removeStyleTags: true
     })

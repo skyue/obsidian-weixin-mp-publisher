@@ -1,4 +1,5 @@
-const import_obsidian7 = require("obsidian");
+import { Modal, Notice, Setting } from 'obsidian';
+import { getStyleProfileById } from '../packages/theme-pack/src/index.ts';
 const FONT_PRESET_OPTIONS = [
   { value: "theme-default", label: "跟随当前主题" },
   { value: "sans", label: "无衬线" },
@@ -83,7 +84,7 @@ function buildMixedPairValue(current, index2, nextValue, fallback, units, steps)
 function addNumberField(options3) {
   let sliderRef = null;
   let inputRef = null;
-  const setting = new import_obsidian7.Setting(options3.container).setName(options3.name).setDesc(options3.desc ?? "");
+  const setting = new Setting(options3.container).setName(options3.name).setDesc(options3.desc ?? "");
   setting.settingEl.addClass("weixin-mp-publisher-slider-setting");
   setting.controlEl.addClass("weixin-mp-publisher-slider-control");
   setting.addSlider((slider) => {
@@ -117,7 +118,7 @@ function addNumberField(options3) {
     });
   });
 }
-const StyleConfigModal = class extends import_obsidian7.Modal {
+export const StyleConfigModal = class extends Modal {
   constructor(plugin23) {
     super(plugin23.app);
     this.plugin = plugin23;
@@ -134,7 +135,7 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
     this.buildQuoteAndMediaSection(contentEl);
     this.buildCodeSection(contentEl);
     this.buildTagSection(contentEl);
-    new import_obsidian7.Setting(contentEl).setClass("weixin-mp-publisher-style-actions").addButton((button) => {
+    new Setting(contentEl).setClass("weixin-mp-publisher-style-actions").addButton((button) => {
       button.setButtonText("恢复默认");
       button.onClick(async () => {
         this.plugin.settings.styleOverrides = {};
@@ -146,7 +147,7 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
       button.setCta();
       button.onClick(async () => {
         await this.plugin.saveSettings();
-        new import_obsidian7.Notice("高级微调已保存。");
+        new Notice("高级微调已保存。");
         this.close();
       });
     });
@@ -161,7 +162,7 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
       "我的方案",
       "最多保存 5 个带别名的格式方案，后面可以一键套用。"
     );
-    new import_obsidian7.Setting(section).setName("方案别名").setDesc("保存的是当前排版模板 + 当前高级微调配置。").addText((text6) => {
+    new Setting(section).setName("方案别名").setDesc("保存的是当前排版模板 + 当前高级微调配置。").addText((text6) => {
       text6.setPlaceholder("例如：佛教长文 / 快讯版 / 课程封面版").setValue(this.presetNameDraft).onChange((value2) => {
         this.presetNameDraft = value2;
       });
@@ -172,7 +173,7 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
           return;
         }
         this.presetNameDraft = "";
-        new import_obsidian7.Notice(result === "updated" ? "已覆盖同名格式方案。" : "已保存格式方案。");
+        new Notice(result === "updated" ? "已覆盖同名格式方案。" : "已保存格式方案。");
         this.onOpen();
       });
     });
@@ -184,11 +185,11 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
       return;
     }
     for (const preset of this.plugin.settings.savedStylePresets) {
-      new import_obsidian7.Setting(section).setName(preset.name).setDesc(`排版模板：${getStyleProfileById(preset.baseStyleId).label}`).addButton((button) => {
+      new Setting(section).setName(preset.name).setDesc(`排版模板：${getStyleProfileById(preset.baseStyleId).label}`).addButton((button) => {
         button.setButtonText("套用");
         button.onClick(async () => {
           await this.plugin.applySavedStylePreset(preset.id);
-          new import_obsidian7.Notice(`已套用格式方案：${preset.name}`);
+          new Notice(`已套用格式方案：${preset.name}`);
           this.onOpen();
         });
       }).addExtraButton((button) => {
@@ -196,7 +197,7 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
         button.setTooltip("删除方案");
         button.onClick(async () => {
           await this.plugin.deleteSavedStylePreset(preset.id);
-          new import_obsidian7.Notice(`已删除格式方案：${preset.name}`);
+          new Notice(`已删除格式方案：${preset.name}`);
           this.onOpen();
         });
       });
@@ -210,7 +211,7 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
     );
     const effective = this.getEffectiveStyle();
     const overrides = this.plugin.settings.styleOverrides;
-    new import_obsidian7.Setting(section).setName("字体方案").setDesc("默认推荐无衬线，字号仍由下面单独控制。").addDropdown((dropdown) => {
+    new Setting(section).setName("字体方案").setDesc("默认推荐无衬线，字号仍由下面单独控制。").addDropdown((dropdown) => {
       for (const option2 of FONT_PRESET_OPTIONS) {
         dropdown.addOption(option2.value, option2.label);
       }
@@ -311,14 +312,14 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
       },
       afterChange: () => this.refreshPreview()
     });
-    new import_obsidian7.Setting(section).setName("段落两端对齐").setDesc("适合长文，短句和清单内容通常建议关闭。").addToggle((toggle) => {
+    new Setting(section).setName("段落两端对齐").setDesc("适合长文，短句和清单内容通常建议关闭。").addToggle((toggle) => {
       toggle.setValue(effective.textAlign === "justify");
       toggle.onChange((value2) => {
         overrides.textAlign = value2 ? "justify" : "left";
         this.refreshPreview();
       });
     });
-    new import_obsidian7.Setting(section).setName("段落首行缩进").setDesc("更像杂志或专栏排版。").addToggle((toggle) => {
+    new Setting(section).setName("段落首行缩进").setDesc("更像杂志或专栏排版。").addToggle((toggle) => {
       toggle.setValue(Boolean(effective.paragraphIndent));
       toggle.onChange((value2) => {
         overrides.paragraphIndent = value2;
@@ -425,7 +426,7 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
     );
     let textRef = null;
     let colorRef = null;
-    new import_obsidian7.Setting(section).setName("自定义主色").setDesc("留空时沿用当前主题主色。").addColorPicker((picker) => {
+    new Setting(section).setName("自定义主色").setDesc("留空时沿用当前主题主色。").addColorPicker((picker) => {
       colorRef = picker;
       picker.setValue(effective.customPrimaryColor ?? "#0f4c81");
       picker.onChange((value2) => {
@@ -447,7 +448,7 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
     });
     let pageTextRef = null;
     let pageColorRef = null;
-    new import_obsidian7.Setting(section).setName("纸张颜色").setDesc("控制正文承载区域的底色，也就是文字下面那层页面颜色。").addColorPicker((picker) => {
+    new Setting(section).setName("纸张颜色").setDesc("控制正文承载区域的底色，也就是文字下面那层页面颜色。").addColorPicker((picker) => {
       pageColorRef = picker;
       picker.setValue(effective.customPageBackgroundColor ?? "#ffffff");
       picker.onChange((value2) => {
@@ -476,20 +477,20 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
     );
     const effective = this.getEffectiveStyle();
     const overrides = this.plugin.settings.styleOverrides;
-    new import_obsidian7.Setting(section).setName("代码块主题").addDropdown((dropdown) => {
+    new Setting(section).setName("代码块主题").addDropdown((dropdown) => {
       dropdown.addOption("github-dark", "github-dark").addOption("github", "github").setValue(effective.codeTheme ?? "github-dark").onChange((value2) => {
         overrides.codeTheme = value2;
         this.refreshPreview();
       });
     });
-    new import_obsidian7.Setting(section).setName("Mac 代码块头").addToggle((toggle) => {
+    new Setting(section).setName("Mac 代码块头").addToggle((toggle) => {
       toggle.setValue(effective.showMacCodeHeader ?? true);
       toggle.onChange((value2) => {
         overrides.showMacCodeHeader = value2;
         this.refreshPreview();
       });
     });
-    new import_obsidian7.Setting(section).setName("代码块行号").addToggle((toggle) => {
+    new Setting(section).setName("代码块行号").addToggle((toggle) => {
       toggle.setValue(Boolean(effective.showCodeLineNumbers));
       toggle.onChange((value2) => {
         overrides.showCodeLineNumbers = value2;
@@ -525,7 +526,7 @@ const StyleConfigModal = class extends import_obsidian7.Modal {
     return section;
   }
   addDropdownSetting(container2, name, value2, options3, onChange) {
-    new import_obsidian7.Setting(container2).setName(name).addDropdown((dropdown) => {
+    new Setting(container2).setName(name).addDropdown((dropdown) => {
       for (const option2 of options3) {
         dropdown.addOption(option2.value, option2.label);
       }

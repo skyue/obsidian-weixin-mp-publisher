@@ -1,4 +1,4 @@
-const import_obsidian3 = require("obsidian");
+import { TFile, MarkdownRenderer, Component } from 'obsidian';
 const IMAGE_EXTENSIONS = /* @__PURE__ */ new Map([
   ["png", "image/png"],
   ["jpg", "image/jpeg"],
@@ -214,10 +214,10 @@ function findVaultFile(app, sourceFile, rawLink) {
     }
     const resolvedPath = parts.join("/");
     const resolvedFile = app.vault.getAbstractFileByPath(resolvedPath);
-    if (resolvedFile instanceof import_obsidian3.TFile) return resolvedFile;
+    if (resolvedFile instanceof TFile) return resolvedFile;
   }
   const direct = app.metadataCache.getFirstLinkpathDest(link3, sourceFile.path) ?? app.vault.getAbstractFileByPath(link3);
-  if (direct instanceof import_obsidian3.TFile) {
+  if (direct instanceof TFile) {
     return direct;
   }
   const basename = link3.split("/").pop()?.trim();
@@ -244,12 +244,12 @@ async function getMermaidRenderer() {
 async function getMathJaxContext() {
   if (!mathJaxContextPromise) {
     mathJaxContextPromise = Promise.all([
-      Promise.resolve().then(() => __toESM(require_mathjax(), 1)),
-      Promise.resolve().then(() => __toESM(require_tex(), 1)),
-      Promise.resolve().then(() => __toESM(require_svg(), 1)),
-      Promise.resolve().then(() => __toESM(require_liteAdaptor(), 1)),
-      Promise.resolve().then(() => __toESM(require_html(), 1)),
-      Promise.resolve().then(() => __toESM(require_AllPackages(), 1))
+      import('mathjax-full/js/mathjax.js'),
+      import('mathjax-full/js/input/tex.js'),
+      import('mathjax-full/js/output/svg.js'),
+      import('mathjax-full/js/adaptors/liteAdaptor.js'),
+      import('mathjax-full/js/handlers/html.js'),
+      import('mathjax-full/js/input/tex/AllPackages.js')
     ]).then(([mathjaxModule, texModule, svgModule, adaptorModule, handlerModule, packagesModule]) => {
       const adaptor = adaptorModule.liteAdaptor();
       handlerModule.RegisterHTMLHandler(adaptor);
@@ -306,10 +306,10 @@ async function renderMermaidViaObsidian(app, sourceFile, code) {
   const container2 = document.createElement("div");
   container2.className = "wxp-mermaid-obsidian-render";
   document.body.appendChild(container2);
-  const component2 = new import_obsidian3.Component();
+  const component2 = new Component();
   component2.load();
   try {
-    await import_obsidian3.MarkdownRenderer.render(
+    await MarkdownRenderer.render(
       app,
       "```mermaid\n" + code + "\n```",
       container2,
@@ -356,7 +356,7 @@ async function resolveVaultImageToDataUrl(app, sourceFile, rawLink) {
     return link3;
   }
   const file = findVaultFile(app, sourceFile, link3);
-  if (!(file instanceof import_obsidian3.TFile)) {
+  if (!(file instanceof TFile)) {
     return null;
   }
   const mimeType = getMimeTypeByPath(file.path);
@@ -367,15 +367,15 @@ async function resolveVaultImageToDataUrl(app, sourceFile, rawLink) {
   rememberResolvedAssetSource(resourcePath, file.path);
   return resourcePath;
 }
-async function resolveAssetLinkForWechat(app, sourceFile, rawLink) {
+export async function resolveAssetLinkForWechat(app, sourceFile, rawLink) {
   return resolveVaultImageToDataUrl(app, sourceFile, rawLink);
 }
-function lookupOriginalAssetSource(resolvedUrl) {
+export function lookupOriginalAssetSource(resolvedUrl) {
   return RESOLVED_ASSET_SOURCE_MAP.get(resolvedUrl) ?? RESOLVED_ASSET_SOURCE_PREFIX_MAP.get(
     resolvedUrl.slice(0, RESOLVED_ASSET_PREFIX_LENGTH)
   ) ?? null;
 }
-async function preprocessMarkdownForWechat(app, sourceFile, markdown2) {
+export async function preprocessMarkdownForWechat(app, sourceFile, markdown2) {
   let output2 = markdown2.replace(
     /(?<!!)\[\[([^\[\]]+?)\]\]/g,
     (_match, inner2) => {

@@ -1,8 +1,9 @@
-const import_obsidian5 = require("obsidian");
+import { PluginSettingTab, Notice, Setting } from 'obsidian';
+import { createEmptyAccount } from './types.ts';
 function runAsync3(action) {
   void action().catch((error3) => {
     console.error(error3);
-    new import_obsidian5.Notice(`操作失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
+    new Notice(`操作失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
   });
 }
 function addSecretTextField2(setting, value2, onChange) {
@@ -32,7 +33,7 @@ function addSecretTextField2(setting, value2, onChange) {
     });
   });
 }
-const WeiXinMpPublisherSettingTab = class extends import_obsidian5.PluginSettingTab {
+export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
   constructor(app, plugin23) {
     super(app, plugin23);
     this.plugin = plugin23;
@@ -41,7 +42,7 @@ const WeiXinMpPublisherSettingTab = class extends import_obsidian5.PluginSetting
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("h2", { text: "WeiXin MP Publisher 设置" });
-    new import_obsidian5.Setting(containerEl).setName("默认主题").setDesc("用于预览和复制 HTML 的默认主题。").addDropdown((dropdown) => {
+    new Setting(containerEl).setName("默认主题").setDesc("用于预览和复制 HTML 的默认主题。").addDropdown((dropdown) => {
       for (const theme of this.plugin.getAvailableThemes()) {
         dropdown.addOption(theme.id, `${theme.label} \xB7 ${theme.description}`);
       }
@@ -52,7 +53,7 @@ const WeiXinMpPublisherSettingTab = class extends import_obsidian5.PluginSetting
         });
       });
     });
-    new import_obsidian5.Setting(containerEl).setName("默认排版模板").setDesc("控制字号、留白和阅读节奏，独立于主题风格。").addDropdown((dropdown) => {
+    new Setting(containerEl).setName("默认排版模板").setDesc("控制字号、留白和阅读节奏，独立于主题风格。").addDropdown((dropdown) => {
       for (const styleProfile of this.plugin.styleProfiles) {
         dropdown.addOption(styleProfile.id, `${styleProfile.label} \xB7 ${styleProfile.description}`);
       }
@@ -74,7 +75,7 @@ const WeiXinMpPublisherSettingTab = class extends import_obsidian5.PluginSetting
       const cardEl = containerEl.createDiv({
         cls: "weixin-mp-publisher-account-card"
       });
-      new import_obsidian5.Setting(cardEl).setName("账号名称").setDesc("例如：主号 / 备用号").addText((text6) => {
+      new Setting(cardEl).setName("账号名称").setDesc("例如：主号 / 备用号").addText((text6) => {
         text6.setPlaceholder("我的公众号").setValue(account.name).onChange((value2) => {
           runAsync3(async () => {
             account.name = value2.trim() || "未命名账号";
@@ -98,7 +99,7 @@ const WeiXinMpPublisherSettingTab = class extends import_obsidian5.PluginSetting
           });
         });
       });
-      new import_obsidian5.Setting(cardEl).setName("AppID").addText((text6) => {
+      new Setting(cardEl).setName("AppID").addText((text6) => {
         text6.setPlaceholder("wx1234567890").setValue(account.appId).onChange((value2) => {
           runAsync3(async () => {
             account.appId = value2.trim();
@@ -106,26 +107,26 @@ const WeiXinMpPublisherSettingTab = class extends import_obsidian5.PluginSetting
           });
         });
       });
-      const appSecretSetting = new import_obsidian5.Setting(cardEl).setName("AppSecret").setDesc("微信公众号的 AppSecret，仅保存在本地。");
+      const appSecretSetting = new Setting(cardEl).setName("AppSecret").setDesc("微信公众号的 AppSecret，仅保存在本地。");
       addSecretTextField2(appSecretSetting, account.appSecret, async (value2) => {
         account.appSecret = value2;
         await this.plugin.saveSettings();
       });
-      const apiKeySetting = new import_obsidian5.Setting(cardEl).setName("API Key").setDesc("使用中转服务 API Key，享有稳定 IP 地址和发布服务，中转服务不保存 AppSecret。");
+      const apiKeySetting = new Setting(cardEl).setName("API Key").setDesc("使用中转服务 API Key，享有稳定 IP 地址和发布服务，中转服务不保存 AppSecret。");
       addSecretTextField2(apiKeySetting, account.apiKey ?? "", async (value2) => {
         account.apiKey = value2;
         await this.plugin.saveSettings();
       });
       const publicIpStatus = this.plugin.getPublicIpStatus();
-      new import_obsidian5.Setting(cardEl).setName("IP 白名单辅助").setDesc(this.plugin.getPublicIpStatusText()).addButton((button) => {
+      new Setting(cardEl).setName("IP 白名单辅助").setDesc(this.plugin.getPublicIpStatusText()).addButton((button) => {
         button.setButtonText("检测微信出口 IP");
         button.onClick(() => {
           runAsync3(async () => {
             try {
               const ip = await this.plugin.detectPublicIp(account);
-              new import_obsidian5.Notice(`已检测到公网 IP：${ip}`);
+              new Notice(`已检测到公网 IP：${ip}`);
             } catch (error3) {
-              new import_obsidian5.Notice(`检测公网 IP 失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
+              new Notice(`检测公网 IP 失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
             }
             this.display();
           });
@@ -144,7 +145,7 @@ const WeiXinMpPublisherSettingTab = class extends import_obsidian5.PluginSetting
                 `已复制公网 IP：${publicIpStatus.value}`
               );
             } catch (error3) {
-              new import_obsidian5.Notice(`复制失败：${error3 instanceof Error ? error3.message : "未知错误"}`);
+              new Notice(`复制失败：${error3 instanceof Error ? error3.message : "未知错误"}`);
             }
           });
         });
@@ -154,7 +155,7 @@ const WeiXinMpPublisherSettingTab = class extends import_obsidian5.PluginSetting
           this.plugin.openWechatDeveloperPlatform();
         });
       });
-      new import_obsidian5.Setting(cardEl).setName("默认作者").setDesc("可选。右侧发布资料没有作者时，会先用这里自动填充。").addText((text6) => {
+      new Setting(cardEl).setName("默认作者").setDesc("可选。右侧发布资料没有作者时，会先用这里自动填充。").addText((text6) => {
         text6.setPlaceholder("例如：冉策 / HelloRanceLee").setValue(account.defaultAuthor ?? "").onChange((value2) => {
           runAsync3(async () => {
             account.defaultAuthor = value2.trim();
@@ -162,7 +163,7 @@ const WeiXinMpPublisherSettingTab = class extends import_obsidian5.PluginSetting
           });
         });
       });
-      new import_obsidian5.Setting(cardEl).setName("默认封面").setDesc(
+      new Setting(cardEl).setName("默认封面").setDesc(
         account.defaultCoverPath ? `已设置：${account.defaultCoverPath}` : "可选。没有单独封面时，会优先使用这个账号的默认封面。"
       ).addButton((button) => {
         button.setButtonText(account.defaultCoverPath ? "重新选择默认封面" : "选择默认封面");
@@ -178,12 +179,12 @@ const WeiXinMpPublisherSettingTab = class extends import_obsidian5.PluginSetting
         button.onClick(() => {
           runAsync3(async () => {
             await this.plugin.clearAccountDefaultCover(account.id);
-            new import_obsidian5.Notice("已清空账号默认封面。");
+            new Notice("已清空账号默认封面。");
             this.display();
           });
         });
       });
-      new import_obsidian5.Setting(cardEl).setName("设为默认账号").setDesc("后续发布草稿时优先使用这个账号。").addToggle((toggle) => {
+      new Setting(cardEl).setName("设为默认账号").setDesc("后续发布草稿时优先使用这个账号。").addToggle((toggle) => {
         toggle.setValue(this.plugin.settings.preferredAccountId === account.id);
         toggle.onChange((value2) => {
           runAsync3(async () => {
@@ -194,7 +195,7 @@ const WeiXinMpPublisherSettingTab = class extends import_obsidian5.PluginSetting
         });
       });
     });
-    new import_obsidian5.Setting(containerEl).addButton((button) => {
+    new Setting(containerEl).addButton((button) => {
       button.setButtonText("新增账号");
       button.setCta();
       button.onClick(() => {
@@ -205,7 +206,7 @@ const WeiXinMpPublisherSettingTab = class extends import_obsidian5.PluginSetting
           this.plugin.settings.accounts.push(createEmptyAccount());
           await this.plugin.saveSettings();
           this.display();
-          new import_obsidian5.Notice("已新增一个本地公众号账号配置。");
+          new Notice("已新增一个本地公众号账号配置。");
         });
       });
     });

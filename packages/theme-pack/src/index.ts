@@ -1,4 +1,4 @@
-let BUILTIN_THEMES = [
+export let BUILTIN_THEMES = [
   {
     id: "classic",
     label: "经典蓝",
@@ -347,10 +347,10 @@ let BUILTIN_THEMES = [
     )
   }
 ];
-function getThemeById(themeId) {
+export function getThemeById(themeId) {
   return BUILTIN_THEMES.find((theme) => theme.id === themeId) ?? BUILTIN_THEMES[0];
 }
-let BUILTIN_STYLE_PROFILES = [
+export let BUILTIN_STYLE_PROFILES = [
   {
     id: "balanced",
     label: "均衡版",
@@ -453,7 +453,7 @@ let BUILTIN_STYLE_PROFILES = [
     figureCaptionMode: "title-first"
   }
 ];
-function getStyleProfileById(styleId) {
+export function getStyleProfileById(styleId) {
   return BUILTIN_STYLE_PROFILES.find((style3) => style3.id === styleId) ?? BUILTIN_STYLE_PROFILES[0];
 }
 

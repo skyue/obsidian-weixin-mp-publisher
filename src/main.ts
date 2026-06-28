@@ -1,4 +1,16 @@
-const PublishModal = class extends import_obsidian10.Modal {
+import { Plugin, Modal, Setting, Notice, TFile, MarkdownView, requestUrl, normalizePath } from 'obsidian';
+import { renderMarkdownToWechatHtml } from '../packages/render-core/src/index.ts';
+import { BUILTIN_THEMES, BUILTIN_STYLE_PROFILES, getThemeById, getStyleProfileById } from '../packages/theme-pack/src/index.ts';
+import { DEFAULT_SETTINGS, cloneDraftRecords, pruneDraftRecords, createStylePresetId, cloneStyleOverrides, normalizePublisherAccount, cloneCoverMediaRecords, pruneCoverMediaRecords, cloneArticleImageRecords, pruneArticleImageRecords } from './types.ts';
+import { AccountConfigModal } from './account-modal.ts';
+import { FormatModal } from './format-modal.ts';
+import { preprocessMarkdownForWechat } from './markdown-pipeline.ts';
+import { PREVIEW_VIEW_TYPE, WeiXinMpPublisherPreviewView } from './preview-view.ts';
+import { WeiXinMpPublisherSettingTab } from './settings-tab.ts';
+import { StyleConfigModal } from './style-config-modal.ts';
+import { publishDraftToWechat, buildWechatRequest } from './wechat-api.ts';
+
+const PublishModal = class extends Modal {
   constructor(plugin2, fileName) {
     super(plugin2.app);
     this.plugin = plugin2;
@@ -24,7 +36,7 @@ const PublishModal = class extends import_obsidian10.Modal {
     this.contentEl.empty();
     this.contentEl.createDiv({ cls: "weixin-mp-publisher-publish-result", text: message });
     const buttonContainer = this.contentEl.createDiv({ cls: "weixin-mp-publisher-publish-buttons" });
-    new import_obsidian10.Setting(buttonContainer).addButton((btn) => {
+    new Setting(buttonContainer).addButton((btn) => {
       btn.setButtonText("打开公众号后台").setCta().onClick(() => {
         this.plugin.openWechatPlatform();
         this.close();
@@ -38,12 +50,12 @@ const PublishModal = class extends import_obsidian10.Modal {
     this.contentEl.empty();
     this.contentEl.createDiv({ cls: "weixin-mp-publisher-publish-result weixin-mp-publisher-publish-failure", text: message });
     const buttonContainer = this.contentEl.createDiv({ cls: "weixin-mp-publisher-publish-buttons" });
-    new import_obsidian10.Setting(buttonContainer).addButton((btn) => {
+    new Setting(buttonContainer).addButton((btn) => {
       btn.setButtonText("关闭").setCta().onClick(() => this.close());
     });
   }
 };
-const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
+const WeiXinMpPublisherPlugin = class extends Plugin {
   settings = DEFAULT_SETTINGS;
   themes = BUILTIN_THEMES;
   styleProfiles = BUILTIN_STYLE_PROFILES;
@@ -109,7 +121,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
     this.addSettingTab(new WeiXinMpPublisherSettingTab(this.app, this));
     this.registerEvent(
       this.app.workspace.on("file-open", (file) => {
-        if (file instanceof import_obsidian10.TFile && file.extension === "md") {
+        if (file instanceof TFile && file.extension === "md") {
           this.lastMarkdownFilePath = file.path;
         }
         void this.refreshPreviewLeaves();
@@ -117,7 +129,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
     );
     this.registerEvent(
       this.app.workspace.on("active-leaf-change", (leaf) => {
-        if (leaf?.view instanceof import_obsidian10.MarkdownView) {
+        if (leaf?.view instanceof MarkdownView) {
           this.captureMarkdownContext(leaf);
           void this.refreshPreviewLeaves();
         }
@@ -179,19 +191,19 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
     await this.saveSettings();
   }
   getActiveMarkdownFile() {
-    const activeFile = this.app.workspace.getActiveViewOfType(import_obsidian10.MarkdownView)?.file ?? null;
+    const activeFile = this.app.workspace.getActiveViewOfType(MarkdownView)?.file ?? null;
     if (activeFile) {
       this.lastMarkdownFilePath = activeFile.path;
       return activeFile;
     }
     if (this.lastMarkdownFilePath) {
       const cached = this.app.vault.getAbstractFileByPath(this.lastMarkdownFilePath);
-      if (cached instanceof import_obsidian10.TFile && cached.extension === "md") {
+      if (cached instanceof TFile && cached.extension === "md") {
         return cached;
       }
     }
     const markdownLeaf = this.findMarkdownLeaf();
-    const markdownFile = markdownLeaf?.view instanceof import_obsidian10.MarkdownView ? markdownLeaf.view.file : null;
+    const markdownFile = markdownLeaf?.view instanceof MarkdownView ? markdownLeaf.view.file : null;
     if (markdownFile) {
       this.lastMarkdownFilePath = markdownFile.path;
       return markdownFile;
@@ -225,7 +237,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
     }
     const payload = await this.getRenderPayload(themeId);
     if (!payload) {
-      new import_obsidian10.Notice("请先打开一个 Markdown 文件。");
+      new Notice("请先打开一个 Markdown 文件。");
       return;
     }
     try {
@@ -238,17 +250,17 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
       } else {
         await navigator.clipboard.writeText(payload.result.html);
       }
-      new import_obsidian10.Notice(`已复制 ${payload.file.basename} 的微信 HTML。`);
+      new Notice(`已复制 ${payload.file.basename} 的微信 HTML。`);
     } catch (error3) {
       console.error(error3);
-      new import_obsidian10.Notice("复制失败，当前环境不支持剪贴板写入。");
+      new Notice("复制失败，当前环境不支持剪贴板写入。");
     }
   }
   openExternalUrl(url, failureMessage = "打开链接失败，请稍后重试。") {
     try {
       const safeUrl = normalizeHttpUrl(url);
       if (!safeUrl) {
-        new import_obsidian10.Notice("只支持打开 http(s) 外部链接。");
+        new Notice("只支持打开 http(s) 外部链接。");
         return;
       }
       const electronShell = globalThis.require?.(
@@ -261,7 +273,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
       window.open(safeUrl, "_blank", "noopener,noreferrer");
     } catch (error3) {
       console.error(error3);
-      new import_obsidian10.Notice(failureMessage);
+      new Notice(failureMessage);
     }
   }
   openWechatPlatform() {
@@ -341,7 +353,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
     const errors = [];
     for (const provider of providers) {
       try {
-        const response = await (0, import_obsidian10.requestUrl)({
+        const response = await (0, requestUrl)({
           url: provider.url,
           method: "GET",
           throw: false
@@ -385,7 +397,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
         method: "GET",
         requestLabel: "检测微信出口IP"
       });
-      const response = await (0, import_obsidian10.requestUrl)(req);
+      const response = await (0, requestUrl)(req);
       const data6 = response.json;
       const message = data6?.errmsg ?? response.text ?? "";
       if (data6?.errcode === 40164 || /invalid ip/i.test(message)) {
@@ -398,7 +410,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
   }
   async copyTextToClipboard(value2, successMessage = "已复制。") {
     await navigator.clipboard.writeText(value2);
-    new import_obsidian10.Notice(successMessage);
+    new Notice(successMessage);
   }
   async activatePreview() {
     this.captureMarkdownContext(this.app.workspace.activeLeaf ?? void 0);
@@ -421,12 +433,12 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
   }
   findMarkdownLeaf() {
     return this.app.workspace.getLeavesOfType("markdown").find((leaf) => {
-      return leaf.view instanceof import_obsidian10.MarkdownView && Boolean(leaf.view.file);
+      return leaf.view instanceof MarkdownView && Boolean(leaf.view.file);
     }) ?? null;
   }
   captureMarkdownContext(leaf) {
     const targetLeaf = leaf ?? this.app.workspace.activeLeaf ?? this.findMarkdownLeaf();
-    if (!targetLeaf || !(targetLeaf.view instanceof import_obsidian10.MarkdownView) || !targetLeaf.view.file) {
+    if (!targetLeaf || !(targetLeaf.view instanceof MarkdownView) || !targetLeaf.view.file) {
       return;
     }
     this.lastMarkdownFilePath = targetLeaf.view.file.path;
@@ -560,7 +572,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
   async saveCurrentStylePreset(name) {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      new import_obsidian10.Notice("请先给样式方案起一个名字。");
+      new Notice("请先给样式方案起一个名字。");
       return null;
     }
     const existingPreset = this.settings.savedStylePresets.find(
@@ -573,7 +585,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
       return "updated";
     }
     if (this.settings.savedStylePresets.length >= 5) {
-      new import_obsidian10.Notice("最多只能保存 5 个样式方案。请先删除不用的方案。");
+      new Notice("最多只能保存 5 个样式方案。请先删除不用的方案。");
       return null;
     }
     this.settings.savedStylePresets.push({
@@ -588,7 +600,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
   async applySavedStylePreset(presetId) {
     const preset = this.settings.savedStylePresets.find((item) => item.id === presetId);
     if (!preset) {
-      new import_obsidian10.Notice("没有找到这个样式方案。");
+      new Notice("没有找到这个样式方案。");
       return false;
     }
     this.settings.defaultStyleId = getStyleProfileById(preset.baseStyleId).id;
@@ -613,7 +625,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
     }
     const account = this.settings.accounts.find((item) => item.id === accountId);
     if (!account) {
-      new import_obsidian10.Notice("没有找到对应账号。");
+      new Notice("没有找到对应账号。");
       return null;
     }
     const pickedFile = await this.pickImageFile();
@@ -625,9 +637,9 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
     account.defaultCoverPath = storedPath;
     await this.saveSettings();
     if (validationMessage) {
-      new import_obsidian10.Notice(`已保存默认封面。提示：${validationMessage}`, 8e3);
+      new Notice(`已保存默认封面。提示：${validationMessage}`, 8e3);
     } else {
-      new import_obsidian10.Notice("已保存默认封面。");
+      new Notice("已保存默认封面。");
     }
     return storedPath;
   }
@@ -637,7 +649,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
       return false;
     }
     const adapter2 = this.app.vault.adapter;
-    const targetPath = (0, import_obsidian10.normalizePath)(account.defaultCoverPath);
+    const targetPath = (0, normalizePath)(account.defaultCoverPath);
     if (await adapter2.exists(targetPath)) {
       await adapter2.remove(targetPath);
     }
@@ -647,7 +659,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
   }
   async publishActiveNoteDraft(themeId) {
     if (this.isPublishing) {
-      new import_obsidian10.Notice("正在发布中，请稍候...");
+      new Notice("正在发布中，请稍候...");
       return;
     }
     if (!await this.ensureFeatureAccess("draft-publish", "发布草稿")) {
@@ -655,16 +667,16 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
     }
     const payload = await this.getRenderPayload(themeId);
     if (!payload) {
-      new import_obsidian10.Notice("请先打开一个 Markdown 文件。");
+      new Notice("请先打开一个 Markdown 文件。");
       return;
     }
     const account = this.getPreferredAccount();
     if (!account) {
-      new import_obsidian10.Notice("请先在插件设置里配置一个公众号账号。");
+      new Notice("请先在插件设置里配置一个公众号账号。");
       return;
     }
     if (!account.appId || !account.appSecret) {
-      new import_obsidian10.Notice("当前默认账号缺少 AppID 或 AppSecret。");
+      new Notice("当前默认账号缺少 AppID 或 AppSecret。");
       return;
     }
     this.isPublishing = true;
@@ -726,7 +738,7 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
     }
     const noteFile = this.getActiveMarkdownFile();
     if (!noteFile) {
-      new import_obsidian10.Notice("请先打开一个 Markdown 文件。");
+      new Notice("请先打开一个 Markdown 文件。");
       return null;
     }
     const pickedFile = await this.pickImageFile();
@@ -754,23 +766,26 @@ const WeiXinMpPublisherPlugin = class extends import_obsidian10.Plugin {
   }
   async saveImageIntoPluginFolder(accountId, file) {
     const adapter2 = this.app.vault.adapter;
-    const coversDir = (0, import_obsidian10.normalizePath)(
+    const coversDir = (0, normalizePath)(
       `${this.app.vault.configDir}/plugins/${this.manifest.id}/covers`
     );
     await ensureAdapterFolder(adapter2, coversDir);
     const extension5 = pickFileExtension(file);
-    const targetPath = (0, import_obsidian10.normalizePath)(`${coversDir}/${accountId}.${extension5}`);
+    const targetPath = (0, normalizePath)(`${coversDir}/${accountId}.${extension5}`);
     const arrayBuffer = await file.arrayBuffer();
     await adapter2.writeBinary(targetPath, arrayBuffer);
     return targetPath;
   }
 };
+
+export default WeiXinMpPublisherPlugin;
+
 async function ensureAdapterFolder(adapter2: any, targetPath: string): Promise<void> {
   const segments = targetPath.split("/").filter(Boolean);
   let currentPath = "";
   for (const segment of segments) {
     currentPath = currentPath ? `${currentPath}/${segment}` : segment;
-    const normalized = (0, import_obsidian10.normalizePath)(currentPath);
+    const normalized = (0, normalizePath)(currentPath);
     if (!await adapter2.exists(normalized)) {
       await adapter2.mkdir(normalized);
     }

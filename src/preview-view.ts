@@ -1,7 +1,7 @@
-const import_obsidian4 = require("obsidian");
-const PREVIEW_VIEW_TYPE = "weixin-mp-publisher-preview";
+import { ItemView, Notice, TFile, normalizePath } from 'obsidian';
+export const PREVIEW_VIEW_TYPE = "weixin-mp-publisher-preview";
 const SVG_NS = "http://www.w3.org/2000/svg";
-const WeiXinMpPublisherPreviewView = class extends import_obsidian4.ItemView {
+export const WeiXinMpPublisherPreviewView = class extends ItemView {
   constructor(leaf, plugin23) {
     super(leaf);
     this.plugin = plugin23;
@@ -236,7 +236,7 @@ const WeiXinMpPublisherPreviewView = class extends import_obsidian4.ItemView {
         if (!defaultCover) {
           const account = this.plugin.getPreferredAccount();
           if (!account) {
-            new import_obsidian4.Notice("请先配置公众号账号，才能设置默认封面。");
+            new Notice("请先配置公众号账号，才能设置默认封面。");
             return;
           }
           const picked = await this.plugin.pickAccountDefaultCover(account.id);
@@ -853,11 +853,11 @@ const WeiXinMpPublisherPreviewView = class extends import_obsidian4.ItemView {
     }
     const adapter2 = this.app.vault.adapter;
     try {
-      const normalized = (0, import_obsidian4.normalizePath)(path4);
+      const normalized = (0, normalizePath)(path4);
       if (typeof adapter2.getResourcePath !== "function") return null;
       let base = adapter2.getResourcePath(normalized);
       const abstract = this.app.vault.getAbstractFileByPath(normalized);
-      const mtime = abstract instanceof import_obsidian4.TFile ? abstract.stat.mtime : 0;
+      const mtime = abstract instanceof TFile ? abstract.stat.mtime : 0;
       if (mtime && !base.includes("?")) base += "?t=" + mtime;
       return base;
     } catch (e3) {

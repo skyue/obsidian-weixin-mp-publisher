@@ -1,10 +1,12 @@
+import { createEntitlementsForPlan } from '../packages/shared-types/src/index.ts';
+
 const DRAFT_RECORD_RETENTION_DAYS = 14;
 const DRAFT_RECORD_LIMIT = 200;
 const COVER_MEDIA_RECORD_RETENTION_DAYS = 365;
 const COVER_MEDIA_RECORD_LIMIT = 500;
 const ARTICLE_IMAGE_RECORD_RETENTION_DAYS = 365;
 const ARTICLE_IMAGE_RECORD_LIMIT = 2000;
-const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS = {
   defaultThemeId: "classic",
   defaultStyleId: "balanced",
   styleOverrides: {
@@ -21,7 +23,7 @@ const DEFAULT_SETTINGS = {
   articleImageRecords: [],
   entitlements: createEntitlementsForPlan("free")
 };
-function createEmptyAccount() {
+export function createEmptyAccount() {
   return {
     id: globalThis.crypto?.randomUUID?.() ?? `account-${Date.now()}`,
     name: "新账号",
@@ -41,13 +43,13 @@ function createEmptyAccount() {
     licenseLastValidatedAt: null
   };
 }
-function createStylePresetId() {
+export function createStylePresetId() {
   return globalThis.crypto?.randomUUID?.() ?? `style-preset-${Date.now()}`;
 }
-function cloneStyleOverrides(styleOverrides) {
+export function cloneStyleOverrides(styleOverrides) {
   return { ...styleOverrides };
 }
-function normalizePublisherAccount(account) {
+export function normalizePublisherAccount(account) {
   return {
     ...createEmptyAccount(),
     ...account ?? {},
@@ -69,7 +71,7 @@ function normalizePublisherAccount(account) {
     licenseLastValidatedAt: typeof account?.licenseLastValidatedAt === "string" ? account.licenseLastValidatedAt : null
   };
 }
-function cloneDraftRecords(draftRecords) {
+export function cloneDraftRecords(draftRecords) {
   const normalizedRecords = Array.isArray(draftRecords) ? draftRecords.filter(
     (record) => Boolean(record?.notePath && record?.accountId && record?.mediaId)
   ).map((record) => ({
@@ -81,7 +83,7 @@ function cloneDraftRecords(draftRecords) {
   })) : [];
   return pruneDraftRecords(normalizedRecords);
 }
-function cloneCoverMediaRecords(coverMediaRecords) {
+export function cloneCoverMediaRecords(coverMediaRecords) {
   const normalizedRecords = Array.isArray(coverMediaRecords) ? coverMediaRecords.filter(
     (record) => Boolean(record?.accountId && record?.sourceKey && record?.mediaId)
   ).map((record) => ({
@@ -92,7 +94,7 @@ function cloneCoverMediaRecords(coverMediaRecords) {
   })) : [];
   return pruneCoverMediaRecords(normalizedRecords);
 }
-function pruneDraftRecords(draftRecords) {
+export function pruneDraftRecords(draftRecords) {
   const cutoffTime = Date.now() - DRAFT_RECORD_RETENTION_DAYS * 24 * 60 * 60 * 1e3;
   return draftRecords.filter((record) => {
     const updatedAtTime = new Date(record.updatedAt).getTime();
@@ -101,7 +103,7 @@ function pruneDraftRecords(draftRecords) {
     return new Date(right3.updatedAt).getTime() - new Date(left3.updatedAt).getTime();
   }).slice(0, DRAFT_RECORD_LIMIT);
 }
-function pruneCoverMediaRecords(coverMediaRecords) {
+export function pruneCoverMediaRecords(coverMediaRecords) {
   const cutoffTime = Date.now() - COVER_MEDIA_RECORD_RETENTION_DAYS * 24 * 60 * 60 * 1e3;
   return coverMediaRecords.filter((record) => {
     const updatedAtTime = new Date(record.updatedAt).getTime();
@@ -110,7 +112,7 @@ function pruneCoverMediaRecords(coverMediaRecords) {
     return new Date(right3.updatedAt).getTime() - new Date(left3.updatedAt).getTime();
   }).slice(0, COVER_MEDIA_RECORD_LIMIT);
 }
-function cloneArticleImageRecords(articleImageRecords) {
+export function cloneArticleImageRecords(articleImageRecords) {
   const normalizedRecords = Array.isArray(articleImageRecords) ? articleImageRecords.filter(
     (record) => Boolean(record?.accountId && record?.sourceKey && record?.url)
   ).map((record) => ({
@@ -121,7 +123,7 @@ function cloneArticleImageRecords(articleImageRecords) {
   })) : [];
   return pruneArticleImageRecords(normalizedRecords);
 }
-function pruneArticleImageRecords(articleImageRecords) {
+export function pruneArticleImageRecords(articleImageRecords) {
   const cutoffTime = Date.now() - ARTICLE_IMAGE_RECORD_RETENTION_DAYS * 24 * 60 * 60 * 1e3;
   return articleImageRecords.filter((record) => {
     const updatedAtTime = new Date(record.updatedAt).getTime();
@@ -132,7 +134,7 @@ function pruneArticleImageRecords(articleImageRecords) {
 }
 
 // TypeScript type definitions for lint compliance
-interface PublisherAccount {
+export interface PublisherAccount {
   id: string;
   name: string;
   appId: string;
@@ -151,7 +153,7 @@ interface PublisherAccount {
   licenseLastValidatedAt?: string | null;
 }
 
-interface DraftRecord {
+export interface DraftRecord {
   notePath: string;
   accountId: string;
   mediaId: string;
@@ -159,28 +161,28 @@ interface DraftRecord {
   updatedAt: string;
 }
 
-interface CoverMediaRecord {
+export interface CoverMediaRecord {
   accountId: string;
   sourceKey: string;
   mediaId: string;
   updatedAt: string;
 }
 
-interface ArticleImageRecord {
+export interface ArticleImageRecord {
   accountId: string;
   sourceKey: string;
   url: string;
   updatedAt: string;
 }
 
-interface StyleOverrides {
+export interface StyleOverrides {
   fontPreset: string;
   textAlign: string;
   paragraphIndent: boolean;
   figureCaptionMode: string;
 }
 
-interface PublisherSettings {
+export interface PublisherSettings {
   defaultThemeId: string;
   defaultStyleId: string;
   styleOverrides: StyleOverrides;
@@ -193,7 +195,7 @@ interface PublisherSettings {
   entitlements: any;
 }
 
-interface ImageAsset {
+export interface ImageAsset {
   bytes: Uint8Array;
   contentType: string;
   filename: string;
@@ -201,24 +203,24 @@ interface ImageAsset {
   filePath?: string;
 }
 
-interface HtmlImageRef {
+export interface HtmlImageRef {
   src: string;
   originalSource?: string;
 }
 
-interface ParsedDataUrl {
+export interface ParsedDataUrl {
   mimeType: string;
   data: string;
   isBase64: boolean;
 }
 
-interface RehostResult {
+export interface RehostResult {
   html: string;
   imageCount: number;
   articleImageRecords: ArticleImageRecord[];
 }
 
-interface PublishInput {
+export interface PublishInput {
   app: any;
   account: PublisherAccount;
   file: any;
@@ -230,7 +232,7 @@ interface PublishInput {
   onProgress?: (message: string) => void;
 }
 
-interface PublishResult {
+export interface PublishResult {
   mediaId: string;
   title: string;
   imageCount: number;

@@ -1,10 +1,11 @@
-const import_obsidian = require("obsidian");
+import { Modal, Notice, Setting } from 'obsidian';
+import { createEmptyAccount } from './types.ts';
 
 
 function runAsync(action) {
   void action().catch((error3) => {
     console.error(error3);
-    new import_obsidian.Notice(`操作失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
+    new Notice(`操作失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
   });
 }
 function addSecretTextField(setting, value2, onChange) {
@@ -32,7 +33,7 @@ function addSecretTextField(setting, value2, onChange) {
     });
   });
 }
-const AccountConfigModal = class extends import_obsidian.Modal {
+export const AccountConfigModal = class extends Modal {
   constructor(plugin23) {
     super(plugin23.app);
     this.plugin = plugin23;
@@ -46,7 +47,7 @@ const AccountConfigModal = class extends import_obsidian.Modal {
     contentEl.createEl("p", {
       text: "账号信息只保存在本地插件配置，用于直接调用微信草稿接口。个人使用完全免费。"
     });
-    new import_obsidian.Setting(contentEl).addButton((button) => {
+    new Setting(contentEl).addButton((button) => {
       button.setButtonText("手动新增账号");
       button.onClick(() => {
         const newAccount = createEmptyAccount();
@@ -73,7 +74,7 @@ const AccountConfigModal = class extends import_obsidian.Modal {
         attr: { placeholder: "公众号\n你的公众号名称\nAppID\nwx...\nAppSecret\n..." }
       });
       const resultEl = importEl.createEl("div", { cls: "weixin-mp-publisher-paste-import__result" });
-      new import_obsidian.Setting(importEl).addButton((button) => {
+      new Setting(importEl).addButton((button) => {
         button.setButtonText("识别并新增账号");
         button.setCta();
         button.onClick(() => {
@@ -133,7 +134,7 @@ const AccountConfigModal = class extends import_obsidian.Modal {
       });
       const account = accounts[this.selectedIndex];
       const cardEl = contentEl.createDiv({ cls: "weixin-mp-publisher-account-card" });
-      new import_obsidian.Setting(cardEl).setName("账号名称").setDesc("例如：主号 / 备用号").addText((text6) => {
+      new Setting(cardEl).setName("账号名称").setDesc("例如：主号 / 备用号").addText((text6) => {
         text6.setValue(account.name).onChange((value2) => {
           account.name = value2.trim() || "未命名账号";
           const tabNameEl = tabRowEl.querySelectorAll(".weixin-mp-publisher-account-tab__name")[this.selectedIndex];
@@ -161,25 +162,25 @@ const AccountConfigModal = class extends import_obsidian.Modal {
           });
         });
       });
-      new import_obsidian.Setting(cardEl).setName("AppID").addText((text6) => {
+      new Setting(cardEl).setName("AppID").addText((text6) => {
         text6.setPlaceholder("wx1234567890").setValue(account.appId).onChange((value2) => {
           account.appId = value2.trim();
         });
       });
-      const appSecretSetting = new import_obsidian.Setting(cardEl).setName("AppSecret");
+      const appSecretSetting = new Setting(cardEl).setName("AppSecret");
       addSecretTextField(appSecretSetting, account.appSecret, (value2) => {
         account.appSecret = value2;
       });
       const publicIpStatus = this.plugin.getPublicIpStatus();
-      new import_obsidian.Setting(cardEl).setName("IP 白名单辅助").setDesc(this.plugin.getPublicIpStatusText()).addButton((button) => {
+      new Setting(cardEl).setName("IP 白名单辅助").setDesc(this.plugin.getPublicIpStatusText()).addButton((button) => {
         button.setButtonText("检测微信出口 IP");
         button.onClick(() => {
           runAsync(async () => {
             try {
               const ip = await this.plugin.detectPublicIp(account);
-              new import_obsidian.Notice(`已检测到公网 IP：${ip}`);
+              new Notice(`已检测到公网 IP：${ip}`);
             } catch (error3) {
-              new import_obsidian.Notice(`检测公网 IP 失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
+              new Notice(`检测公网 IP 失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
             }
             this.onOpen();
           });
@@ -196,7 +197,7 @@ const AccountConfigModal = class extends import_obsidian.Modal {
                 `已复制公网 IP：${publicIpStatus.value}`
               );
             } catch (error3) {
-              new import_obsidian.Notice(`复制失败：${error3 instanceof Error ? error3.message : "未知错误"}`);
+              new Notice(`复制失败：${error3 instanceof Error ? error3.message : "未知错误"}`);
             }
           });
         });
@@ -206,12 +207,12 @@ const AccountConfigModal = class extends import_obsidian.Modal {
           this.plugin.openWechatDeveloperPlatform();
         });
       });
-      new import_obsidian.Setting(cardEl).setName("默认作者").setDesc("可选。右侧发布资料里没有作者时，自动先填这个名字。").addText((text6) => {
+      new Setting(cardEl).setName("默认作者").setDesc("可选。右侧发布资料里没有作者时，自动先填这个名字。").addText((text6) => {
         text6.setPlaceholder("例如：冉策 / HelloRanceLee").setValue(account.defaultAuthor ?? "").onChange((value2) => {
           account.defaultAuthor = value2.trim();
         });
       });
-      new import_obsidian.Setting(cardEl).setName("默认封面").setDesc(
+      new Setting(cardEl).setName("默认封面").setDesc(
         account.defaultCoverPath ? `已设置：${account.defaultCoverPath}` : "可选。未手动选择封面时，可用作该账号的默认封面。"
       ).addButton((button) => {
         button.setButtonText(account.defaultCoverPath ? "重新选择默认封面" : "选择默认封面");
@@ -227,25 +228,25 @@ const AccountConfigModal = class extends import_obsidian.Modal {
         button.onClick(() => {
           runAsync(async () => {
             await this.plugin.clearAccountDefaultCover(account.id);
-            new import_obsidian.Notice("已清空账号默认封面。");
+            new Notice("已清空账号默认封面。");
             this.onOpen();
           });
         });
       });
-      new import_obsidian.Setting(cardEl).setName("设为默认账号").addToggle((toggle) => {
+      new Setting(cardEl).setName("设为默认账号").addToggle((toggle) => {
         toggle.setValue(this.plugin.settings.preferredAccountId === account.id);
         toggle.onChange((value2) => {
           this.plugin.settings.preferredAccountId = value2 ? account.id : null;
         });
       });
     }
-    new import_obsidian.Setting(contentEl).addButton((button) => {
+    new Setting(contentEl).addButton((button) => {
       button.setButtonText("保存");
       button.setCta();
       button.onClick(() => {
         runAsync(async () => {
           await this.plugin.saveSettings();
-          new import_obsidian.Notice("公众号账号已保存。");
+          new Notice("公众号账号已保存。");
           this.close();
         });
       });
