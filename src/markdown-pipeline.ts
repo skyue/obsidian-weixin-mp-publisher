@@ -243,7 +243,7 @@ async function getMermaidRenderer(): Promise<{ render(id: string, code: string, 
   }
   return mermaidPromise;
 }
-/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await -- end of Mermaid dynamic import block */
+/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await -- Mermaid loaded dynamically via globals, no TS types available */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return -- MathJax loaded dynamically via import(), no TS types available */
 
 async function getMathJaxContext(): Promise<{ convert: (expression: string, options: { display: boolean }) => unknown; adaptor: { outerHTML: (node: unknown) => string } }> {
@@ -278,7 +278,7 @@ async function getMathJaxContext(): Promise<{ convert: (expression: string, opti
   }
   return await mathJaxContextPromise;
 }
-/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return -- end of MathJax dynamic import block */
+/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return -- MathJax loaded dynamically via import(), no TS types available */
 function createHiddenRenderHost(className: string): HTMLElement {
   const host = activeDocument.createElement("div");
   host.className = `weixin-mp-publisher-hidden-host ${className}`;

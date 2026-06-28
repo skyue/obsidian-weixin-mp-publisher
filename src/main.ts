@@ -282,7 +282,7 @@ class WeiXinMpPublisherPlugin extends Plugin {
         void electronShell.shell.openExternal(safeUrl);
         return;
       }
-      /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+      /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call -- Electron shell API has no TS types */
       window.open(safeUrl, "_blank", "noopener,noreferrer");
     } catch (error3) {
       console.error(error3);

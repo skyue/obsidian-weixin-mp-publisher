@@ -378,7 +378,7 @@ function createElectronImageFromAsset(nativeImage: unknown, asset: ImageAsset): 
     return null;
   }
 }
-/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument -- end of Electron/Node interop helpers block */
+/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument -- Electron / Node.js interop helpers, platform APIs have no TS types */
 function stringToBase642(value2: string): string {
   const encoded = new TextEncoder().encode(value2);
   let binary2 = "";
@@ -578,7 +578,7 @@ async function convertAssetToPng(asset: ImageAsset): Promise<ImageAsset> {
       contentType: asset.contentType
     });
   }
-  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument -- end of Electron image conversion block (png) */
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument -- Electron nativeImage API has no TS types */
   if (!asset.contentType.includes("svg")) {
     const sipsResult = convertAssetWithSips(asset, "png");
     if (sipsResult) {
@@ -643,7 +643,7 @@ async function convertAssetToJpeg(asset: ImageAsset, options3?: { maxWidth?: num
       contentType: asset.contentType
     });
   }
-  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument -- end of Electron image conversion block (jpeg) */
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument -- Electron nativeImage API has no TS types */
   if (!asset.contentType.includes("svg")) {
     const sipsResult = convertAssetWithSips(asset, "jpeg");
     if (sipsResult) {
