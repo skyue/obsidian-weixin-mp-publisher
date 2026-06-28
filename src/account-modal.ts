@@ -210,7 +210,7 @@ export const AccountConfigModal = class extends Modal {
         });
       });
       new Setting(cardEl).setName("默认作者").setDesc("可选。右侧发布资料里没有作者时，自动先填这个名字。").addText((text6) => {
-        text6.setPlaceholder("例如：冉策 / HelloRanceLee").setValue(account.defaultAuthor ?? "").onChange((value2) => {
+        text6.setPlaceholder("例如：拾月 / SKYue").setValue(account.defaultAuthor ?? "").onChange((value2) => {
           account.defaultAuthor = value2.trim();
         });
       });

@@ -83,7 +83,8 @@ const CALLOUT_LABELS = {
   todo: "待办",
   warning: "警示"
 };
-function stripFrontmatter(markdown2) {
+function stripFrontmatter(markdown2: string): { content: string; data: Record<string, string> } {
+
   if (!markdown2.startsWith("---")) {
     return { content: markdown2, data: {} };
   }
@@ -111,10 +112,12 @@ function stripFrontmatter(markdown2) {
     data: data6
   };
 }
-function escapeHtml(text6) {
+function escapeHtml(text6: string): string {
+
   return text6.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
 }
-function preserveCodeWhitespace(html5) {
+function preserveCodeWhitespace(html5: string): string {
+
   return html5.split(/(<[^>]+>)/g).map((segment) => {
     if (!segment || segment.startsWith("<")) {
       return segment;
@@ -122,7 +125,8 @@ function preserveCodeWhitespace(html5) {
     return segment.replace(/\t/g, "&nbsp;&nbsp;&nbsp;&nbsp;").replace(/ /g, "&nbsp;");
   }).join("");
 }
-function highlightCodeLine(line2, lang) {
+function highlightCodeLine(line2: string, lang: string): string {
+
   if (!line2) {
     return "&nbsp;";
   }
@@ -133,29 +137,35 @@ function highlightCodeLine(line2, lang) {
     return preserveCodeWhitespace(escapeHtml(line2));
   }
 }
-function stripHtmlTags(html5) {
+function stripHtmlTags(html5: string): string {
+
   return html5.replace(/<\/p>\s*<p>/gi, "\n").replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").trim();
 }
-function stripMarkdownSyntax(text6) {
+function stripMarkdownSyntax(text6: string): string {
+
   return stripHtmlTags(
     text6.replace(/!\[[^\]]*]\([^)]+\)/g, "").replace(/\[([^\]]+)]\([^)]+\)/g, "$1").replace(/`([^`]+)`/g, "$1").replace(/[*_~]+/g, "")
   );
 }
-function toPlainText(markdown2) {
+function toPlainText(markdown2: string): string {
+
   return markdown2.replace(/^#{1,6}\s+/gm, "").replace(/```[\s\S]*?```/g, "").replace(/`([^`]+)`/g, "$1").replace(/!\[[^\]]*]\([^)]+\)/g, "").replace(/\[([^\]]+)]\([^)]+\)/g, "$1").replace(/[>*_-]{2,}/g, " ").replace(/\s+/g, " ").trim();
 }
-function normalizeCalloutLabel(rawType, rawTitle) {
+function normalizeCalloutLabel(rawType: string, rawTitle: string): string {
+
   const cleanTitle = rawTitle.trim();
   if (cleanTitle) {
     return cleanTitle;
   }
   const key = rawType.trim().toLowerCase();
-  return CALLOUT_LABELS[key] ?? key.toUpperCase();
+  return (CALLOUT_LABELS as Record<string, string>)[key] ?? key.toUpperCase();
 }
-function quoteifyMarkdown(content) {
+function quoteifyMarkdown(content: string): string {
+
   return content.split("\n").map((line2) => line2.trim()).filter((line2, index2, lines) => line2.length > 0 || index2 > 0 && lines[index2 - 1].length > 0).map((line2) => line2 ? `> ${line2}` : ">").join("\n");
 }
-function transformCallouts(markdown2) {
+function transformCallouts(markdown2: string): string {
+
   const lines = markdown2.split("\n");
   const output2 = [];
   for (let index2 = 0; index2 < lines.length; index2 += 1) {
@@ -178,10 +188,11 @@ function transformCallouts(markdown2) {
   }
   return output2.join("\n");
 }
-function transformDetailsBlocks(markdown2) {
+function transformDetailsBlocks(markdown2: string): string {
+
   return markdown2.replace(
     /<details>\s*<summary>([\s\S]*?)<\/summary>\s*([\s\S]*?)<\/details>/gi,
-    (_match, rawSummary, rawBody) => {
+    (_match: string, rawSummary: string, rawBody: string) => {
       const summary = stripHtmlTags(rawSummary) || "展开内容";
       const body = stripHtmlTags(rawBody);
       const quotedBody = body.split("\n").map((line2) => line2.trim()).filter(Boolean).map((line2) => `> ${line2}`).join("\n");
@@ -190,42 +201,49 @@ ${quotedBody}` : `> **${summary}**`;
     }
   );
 }
-function transformHighlights(markdown2) {
-  return markdown2.replace(/==([^=\n]+)==/g, (_match, text6) => {
+function transformHighlights(markdown2: string): string {
+
+  return markdown2.replace(/==([^=\n]+)==/g, (_match: string, text6: string) => {
     return `<span class="wxp-highlight">${escapeHtml(text6.trim())}</span>`;
   });
 }
-function transformRawMarkTags(markdown2) {
-  return markdown2.replace(/<mark>([\s\S]*?)<\/mark>/gi, (_match, text6) => {
+function transformRawMarkTags(markdown2: string): string {
+
+  return markdown2.replace(/<mark>([\s\S]*?)<\/mark>/gi, (_match: string, text6: string) => {
     return `<span class="wxp-highlight">${escapeHtml(stripHtmlTags(text6))}</span>`;
   });
 }
-function transformUnderlines(markdown2) {
-  return markdown2.replace(/\+\+([^+\n]+)\+\+/g, (_match, text6) => {
+function transformUnderlines(markdown2: string): string {
+
+  return markdown2.replace(/\+\+([^+\n]+)\+\+/g, (_match: string, text6: string) => {
     return `<span class="wxp-underline">${escapeHtml(text6.trim())}</span>`;
   });
 }
-function transformWavyLines(markdown2) {
-  return markdown2.replace(/(^|[^~])~([^~\n]+)~(?!~)/g, (_match, prefix, text6) => {
+function transformWavyLines(markdown2: string): string {
+
+  return markdown2.replace(/(^|[^~])~([^~\n]+)~(?!~)/g, (_match: string, prefix: string, text6: string) => {
     return `${prefix}<span class="wxp-wavyline">${escapeHtml(text6.trim())}</span>`;
   });
 }
-function transformInlineMath(markdown2) {
+function transformInlineMath(markdown2: string): string {
+
   return markdown2.replace(
     /(```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]+`|\$\$[\s\S]*?\$\$)|\$(?!\$)([^$\n]+?)\$(?!\$)/g,
     (match2, codeBlock, expression) => {
-      if (codeBlock !== void 0) return codeBlock;
-      return `<span class="wxp-math-inline">${escapeHtml(expression.trim())}</span>`;
+      if (codeBlock !== void 0) return codeBlock as string;
+      return `<span class="wxp-math-inline">${escapeHtml((expression as string).trim())}</span>`;
     }
   );
 }
-function transformInlineLatexMath(markdown2) {
-  return markdown2.replace(/\\\(([\s\S]*?)\\\)/g, (_match, expression) => {
+function transformInlineLatexMath(markdown2: string): string {
+
+  return markdown2.replace(/\\\(([\s\S]*?)\\\)/g, (_match: string, expression: string) => {
     return `<span class="wxp-math-inline">${escapeHtml(expression.trim())}</span>`;
   });
 }
-function transformBlockMath(markdown2) {
-  return markdown2.replace(/^\$\$\s*\n?([\s\S]*?)\n?\$\$\s*$/gm, (_match, expression) => {
+function transformBlockMath(markdown2: string): string {
+
+  return markdown2.replace(/^\$\$\s*\n?([\s\S]*?)\n?\$\$\s*$/gm, (_match: string, expression: string) => {
     return `
 \`\`\`math
 ${expression.trim()}
@@ -233,8 +251,9 @@ ${expression.trim()}
 `;
   });
 }
-function transformBlockLatexMath(markdown2) {
-  return markdown2.replace(/\\\[([\s\S]*?)\\\]/g, (_match, expression) => {
+function transformBlockLatexMath(markdown2: string): string {
+
+  return markdown2.replace(/\\\[([\s\S]*?)\\\]/g, (_match: string, expression: string) => {
     return `
 \`\`\`math
 ${expression.trim()}
@@ -242,7 +261,8 @@ ${expression.trim()}
 `;
   });
 }
-function renderRubyHtml(baseText, rubyText) {
+function renderRubyHtml(baseText: string, rubyText: string): string {
+
   const separators = /[・．。-]/;
   const rubyParts = rubyText.split(separators).filter(Boolean);
   if (rubyParts.length === 0) {
@@ -256,46 +276,51 @@ function renderRubyHtml(baseText, rubyText) {
   }
   return `<span class="wxp-ruby"><span class="wxp-ruby-base">${escapeHtml(baseText)}</span><span class="wxp-ruby-text">${escapeHtml(rubyText)}</span></span>`;
 }
-function transformHashtags(markdown2) {
+function transformHashtags(markdown2: string): string {
+
   return markdown2.replace(
     /(```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]+`)|(?<!\w)#([\p{L}\p{N}_\-/]+)/gu,
     (match2, codeBlock, tagContent) => {
-      if (codeBlock !== void 0) return codeBlock;
+      if (codeBlock !== void 0) return codeBlock as string;
       if (!tagContent) return match2;
-      return `<span class="wxp-tag">#${escapeHtml(tagContent)}</span>`;
+      return `<span class="wxp-tag">#${escapeHtml(tagContent as string)}</span>`;
     }
   );
 }
-function transformRuby(markdown2) {
-  let output2 = markdown2.replace(/\[([^\]]+)\]\{([^}]+)\}/g, (_match, text6, ruby) => {
+function transformRuby(markdown2: string): string {
+
+  let output2 = markdown2.replace(/\[([^\]]+)\]\{([^}]+)\}/g, (_match: string, text6: string, ruby: string) => {
     return renderRubyHtml(text6.trim(), ruby.trim());
   });
-  output2 = output2.replace(/\[([^\]]+)\]\^\(([^)]+)\)/g, (_match, text6, ruby) => {
+  output2 = output2.replace(/\[([^\]]+)\]\^\(([^)]+)\)/g, (_match: string, text6: string, ruby: string) => {
     return renderRubyHtml(text6.trim(), ruby.trim());
   });
   return output2;
 }
-function transformAlertContainers(markdown2) {
-  return markdown2.replace(/^:::\s*(\w+)\s*\n([\s\S]*?)\n:::\s*$/gm, (_match, rawType, body) => {
+function transformAlertContainers(markdown2: string): string {
+
+  return markdown2.replace(/^:::\s*(\w+)\s*\n([\s\S]*?)\n:::\s*$/gm, (_match: string, rawType: string, body: string) => {
     const title2 = normalizeCalloutLabel(rawType, "");
     const quoted = quoteifyMarkdown(body);
     return quoted ? `> **${title2}**
 ${quoted}` : `> **${title2}**`;
   });
 }
-function parseMarkdownImageToken(token2) {
+function parseMarkdownImageToken(token2: string): { alt: string; src: string } | null {
+
   const match2 = token2.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
   if (!match2) {
     return null;
   }
   return {
-    alt: match2[1].trim(),
-    src: match2[2].trim()
+    alt: (match2[1] ?? "").trim(),
+    src: (match2[2] ?? "").trim()
   };
 }
-function transformSliders(markdown2) {
-  return markdown2.replace(/^<((?:!\[[^\]]*]\([^)]+\)\s*,\s*)*!\[[^\]]*]\([^)]+\))>\s*$/gm, (_match, inner2) => {
-    const images = inner2.split(/\s*,\s*/).map((token2) => parseMarkdownImageToken(token2)).filter((item) => Boolean(item));
+function transformSliders(markdown2: string): string {
+
+  return markdown2.replace(/^<((?:!\[[^\]]*]\([^)]+\)\s*,\s*)*!\[[^\]]*]\([^)]+\))>\s*$/gm, (_match: string, inner2: string) => {
+    const images = inner2.split(/\s*,\s*/).map((token2) => parseMarkdownImageToken(token2)).filter((item): item is { alt: string; src: string } => Boolean(item));
     if (images.length === 0) {
       return "";
     }
@@ -308,26 +333,30 @@ function transformSliders(markdown2) {
 `;
   });
 }
-function transformInfographicBlocks(markdown2) {
-  return markdown2.replace(/^```infographic\r?\n([\s\S]*?)\r?\n```\s*$/gm, (_match, body) => {
+function transformInfographicBlocks(markdown2: string): string {
+
+  return markdown2.replace(/^```infographic\r?\n([\s\S]*?)\r?\n```\s*$/gm, (_match: string, body: string) => {
     return `
 <section class="wxp-diagram-fallback"><div class="wxp-diagram-title">Infographic 配置</div><pre>${escapeHtml(body.trim())}</pre></section>
 `;
   });
 }
-function transformPlantUmlBlocks(markdown2) {
-  return markdown2.replace(/^```plantuml\r?\n([\s\S]*?)\r?\n```\s*$/gm, (_match, body) => {
+function transformPlantUmlBlocks(markdown2: string): string {
+
+  return markdown2.replace(/^```plantuml\r?\n([\s\S]*?)\r?\n```\s*$/gm, (_match: string, body: string) => {
     return `
 <section class="wxp-diagram-fallback"><div class="wxp-diagram-title">PlantUML 图表源码</div><pre>${escapeHtml(body.trim())}</pre></section>
 `;
   });
 }
-function transformTocPlaceholder(markdown2) {
+function transformTocPlaceholder(markdown2: string): string {
+
   return markdown2.replace(/^\[TOC\]\s*$/gm, '\n<section class="wxp-toc-placeholder"></section>\n');
 }
-function transformFootnotes(markdown2) {
+function transformFootnotes(markdown2: string): string {
+
   const lines = markdown2.split("\n");
-  const footnotes = /* @__PURE__ */ new Map();
+  const footnotes = /* @__PURE__ */ new Map<string, string[]>();
   const bodyLines = [];
   for (let index2 = 0; index2 < lines.length; index2 += 1) {
     const line2 = lines[index2];
@@ -359,7 +388,7 @@ function transformFootnotes(markdown2) {
     return markdown2;
   }
   const orderedIds = [];
-  const replacedBody = bodyLines.join("\n").replace(/\[\^([^\]]+)\]/g, (_match, rawId) => {
+  const replacedBody = bodyLines.join("\n").replace(/\[\^([^\]]+)\]/g, (_match: string, rawId: string) => {
     let order2 = orderedIds.indexOf(rawId);
     if (order2 === -1) {
       orderedIds.push(rawId);
@@ -370,7 +399,7 @@ function transformFootnotes(markdown2) {
   if (orderedIds.length === 0) {
     return replacedBody;
   }
-  const footnoteLines = orderedIds.map((id30, index2) => {
+  const footnoteLines = orderedIds.map((id30: string, index2: number) => {
     const text6 = footnotes.get(id30)?.join(" ") ?? "";
     return `${index2 + 1}. ${text6}`;
   });
@@ -382,7 +411,8 @@ function transformFootnotes(markdown2) {
 
 ${footnoteLines.join("\n")}`;
 }
-function preprocessWechatMarkdown(markdown2) {
+function preprocessWechatMarkdown(markdown2: string): string {
+
   return [
     transformTocPlaceholder,
     transformDetailsBlocks,
@@ -404,25 +434,30 @@ function preprocessWechatMarkdown(markdown2) {
     transformFootnotes
   ].reduce((current, transformer2) => transformer2(current), markdown2);
 }
-function resolvePalette(theme, styleProfile) {
+function resolvePalette(theme: Record<string, unknown>, styleProfile: Record<string, string>): Record<string, string> {
+
+  const palette = theme.palette as Record<string, string>;
   if (!styleProfile.customPrimaryColor && !styleProfile.customPageBackgroundColor) {
-    return theme.palette;
+    return palette;
   }
   return {
-    ...theme.palette,
-    primary: styleProfile.customPrimaryColor ?? theme.palette.primary,
-    background: styleProfile.customPageBackgroundColor ?? theme.palette.background
+    ...palette,
+    primary: styleProfile.customPrimaryColor ?? palette.primary,
+    background: styleProfile.customPageBackgroundColor ?? palette.background
   };
 }
-function resolveFontFamily(theme, styleProfile) {
+function resolveFontFamily(theme: Record<string, unknown>, styleProfile: Record<string, string>): string {
+
   if (styleProfile.fontPreset && styleProfile.fontPreset !== "theme-default") {
-    return FONT_PRESET_STACKS[styleProfile.fontPreset];
+    return (FONT_PRESET_STACKS as Record<string, string>)[styleProfile.fontPreset];
   }
-  return styleProfile.fontFamily ?? theme.typography.fontFamily;
+  return styleProfile.fontFamily ?? (theme.typography as Record<string, string>).fontFamily;
 }
-function buildCss(theme, styleProfile) {
+function buildCss(theme: Record<string, unknown>, styleProfile: Record<string, string>): string {
+
   const palette = resolvePalette(theme, styleProfile);
-  const { typography, radius: radius2 } = theme;
+  const { typography } = theme;
+  const radius2 = theme.radius as string;
   const fontFamily = resolveFontFamily(theme, styleProfile);
   const codeHighlightCss = styleProfile.codeTheme === "github" ? GITHUB_HIGHLIGHT_CSS : GITHUB_DARK_HIGHLIGHT_CSS;
   const calloutStyleMode = styleProfile.calloutStyleMode ?? "card-rounded";
@@ -924,10 +959,11 @@ function buildCss(theme, styleProfile) {
     line-height: 1.4;
   }`}
   ${codeHighlightCss}
-  ${theme.cssOverrides ?? ""}
+  ${typeof theme.cssOverrides === 'string' ? theme.cssOverrides : ''}
   `;
 }
-function extractCaption(href, text6, title2, styleProfile) {
+function extractCaption(href: string, text6: string, title2: string, styleProfile: Record<string, string>): string {
+
   const cleanText = (text6 ?? "").trim();
   const cleanTitle = (title2 ?? "").trim();
   switch (styleProfile.figureCaptionMode) {
@@ -943,7 +979,7 @@ function extractCaption(href, text6, title2, styleProfile) {
       return cleanTitle || cleanText;
   }
 }
-function configureWechatRenderer(md, styleProfile) {
+function configureWechatRenderer(md: markdownit, styleProfile: Record<string, string>): void {
   md.renderer.rules.fence = function(tokens, idx) {
     const token = tokens[idx];
     const info = token.info ? token.info.trim().split(/\s+/g)[0] : '';
@@ -982,28 +1018,32 @@ function configureWechatRenderer(md, styleProfile) {
     return `<a href="${href}">`;
   };
 }
-function transformParagraphBreaks(html5) {
-  return html5.replace(/<p>([\s\S]*?)<\/p>/g, (match, inner) => {
+function transformParagraphBreaks(html5: string): string {
+
+  return html5.replace(/<p>([\s\S]*?)<\/p>/g, (match: string, inner: string) => {
     if (!inner.includes('<br')) return match;
-    const lines = inner.split(/(?:<br\s*\/?>\s*)+/i).map((line2) => line2.trim()).filter(Boolean);
+    const lines = inner.split(/(?:<br\s*\/?>\s*)+/i).map((line2: string) => line2.trim()).filter(Boolean);
     if (lines.length <= 1) return match;
     const [firstLine, ...restLines] = lines;
-    const continuationHtml = restLines.map((line2) => `<span class="wxp-br-line">${line2}</span>`).join('');
+    const continuationHtml = restLines.map((line2: string) => `<span class="wxp-br-line">${line2}</span>`).join('');
     return `<p>${firstLine}${continuationHtml}</p>`;
   });
 }
-function transformListItems(html5) {
+function transformListItems(html5: string): string {
+
   html5 = html5.replace(/<li><p>/g, '<li><span class="wxp-li-paragraph">');
   html5 = html5.replace(/<\/p>\s*<\/li>/g, '</span></li>');
   html5 = html5.replace(/<\/p>\s*(<[ou]l)/g, '</span>$1');
   return html5;
 }
-function extractImages(html5) {
+function extractImages(html5: string): string[] {
+
   const matches33 = html5.matchAll(/<img[^>]+src="([^"]+)"/g);
-  return [...new Set(Array.from(matches33, (match2) => match2[1]))];
+  return [...new Set(Array.from(matches33, (match2: RegExpMatchArray) => match2[1]))];
 }
-function collectHeadings(html5) {
-  const headings = [];
+function collectHeadings(html5: string): Array<{ level: number; text: string; id: string }> {
+
+  const headings: Array<{ level: number; text: string; id: string }> = [];
   let index2 = 0;
   for (const match2 of html5.matchAll(/<h([1-6])>([\s\S]*?)<\/h\1>/g)) {
     index2 += 1;
@@ -1018,7 +1058,8 @@ function collectHeadings(html5) {
   }
   return headings;
 }
-function buildTocHtml(headings) {
+function buildTocHtml(headings: Array<{ level: number; text: string; id: string }>): string {
+
   if (headings.length === 0) {
     return "";
   }
@@ -1030,10 +1071,14 @@ function buildTocHtml(headings) {
   }
   return `<section class="wxp-toc"><p class="wxp-toc-title">目录</p><ul>${items}</ul></section>`;
 }
-function normalizeWechatHtml(html5) {
+function normalizeWechatHtml(html5: string): string {
+
   return html5.replace(/<(ol|ul)([^>]*)>\s+/g, "<$1$2>").replace(/\s+<\/(ol|ul)>/g, "</$1>").replace(/<\/li>\s+(?=<li\b)/g, "</li>").replace(/<(li\b[^>]*)>\s+/g, "<$1>").replace(/\s+<\/li>/g, "</li>");
 }
-export function renderMarkdownToWechatHtml(markdown2, options3) {
+export function renderMarkdownToWechatHtml(
+  markdown2: string,
+  options3: { theme: Record<string, unknown>; styleProfile: Record<string, string> }
+): { html: string; metadata: { title: string | undefined; excerpt: string; images: string[] } } {
   const { content, data: data6 } = stripFrontmatter(markdown2);
   const normalizedContent = preprocessWechatMarkdown(content);
   const md = markdownit({ html: true, breaks: true, linkify: true });

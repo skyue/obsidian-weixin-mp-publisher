@@ -247,14 +247,13 @@ async function createCoverMediaSourceKey(asset: ImageAsset): Promise<string> {
   ) : fallbackHashBytes(asset.bytes);
   return `${asset.contentType.toLowerCase()}:${asset.bytes.byteLength}:${hash}`;
 }
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-// Electron / Node.js interop helpers — these platform APIs have no TS types.
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- Electron / Node.js interop helpers, platform APIs have no TS types */
 
-function toElectronBinary(bytes: Uint8Array): any {
+function toElectronBinary(bytes: Uint8Array): unknown {
   const runtime = window;
   return runtime.Buffer?.from ? runtime.Buffer.from(bytes) : bytes;
 }
-function getElectronNativeImage(): any {
+function getElectronNativeImage(): unknown {
   try {
     const runtime = window;
     const electronModule = runtime.require?.("electron");
@@ -263,7 +262,7 @@ function getElectronNativeImage(): any {
     return null;
   }
 }
-function getNodeRequire(): any {
+function getNodeRequire(): unknown {
   try {
     const runtime = window;
     return runtime.require ?? null;
@@ -271,7 +270,7 @@ function getNodeRequire(): any {
     return null;
   }
 }
-function requireOptional(runtimeRequire: any, names: string[]): any {
+function requireOptional(runtimeRequire: unknown, names: string[]): unknown {
   for (const name of names) {
     try {
       return runtimeRequire(name);
@@ -337,7 +336,7 @@ function convertAssetWithSips(asset: ImageAsset, targetFormat: string): ImageAss
     return null;
   }
 }
-function createElectronImageFromAsset(nativeImage: any, asset: ImageAsset): any {
+function createElectronImageFromAsset(nativeImage: unknown, asset: ImageAsset): unknown {
   if (asset.filePath && nativeImage.createFromPath) {
     try {
       const image = nativeImage.createFromPath(asset.filePath);
@@ -379,7 +378,7 @@ function createElectronImageFromAsset(nativeImage: any, asset: ImageAsset): any 
     return null;
   }
 }
-/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
+/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 function stringToBase642(value2: string): string {
   const encoded = new TextEncoder().encode(value2);
   let binary2 = "";
@@ -563,7 +562,7 @@ async function loadSvgImage(asset: ImageAsset): Promise<{ drawable: HTMLImageEle
   };
 }
 async function convertAssetToPng(asset: ImageAsset): Promise<ImageAsset> {
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call -- Electron nativeImage API has no TS types */
   const nativeImage = getElectronNativeImage();
   if (nativeImage) {
     const image = createElectronImageFromAsset(nativeImage, asset);
@@ -579,7 +578,7 @@ async function convertAssetToPng(asset: ImageAsset): Promise<ImageAsset> {
       contentType: asset.contentType
     });
   }
-  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
   if (!asset.contentType.includes("svg")) {
     const sipsResult = convertAssetWithSips(asset, "png");
     if (sipsResult) {
@@ -611,7 +610,7 @@ async function convertAssetToPng(asset: ImageAsset): Promise<ImageAsset> {
   };
 }
 async function convertAssetToJpeg(asset: ImageAsset, options3?: { maxWidth?: number; maxHeight?: number; quality?: number }): Promise<ImageAsset> {
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- Electron nativeImage API has no TS types */
   const nativeImage = getElectronNativeImage();
   if (nativeImage) {
     let image = createElectronImageFromAsset(nativeImage, asset);

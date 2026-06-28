@@ -227,8 +227,8 @@ function findVaultFile(app: App, sourceFile: TFile, rawLink: string): TFile | nu
   const normalizedBasename = normalizeLookupKey(basename);
   return app.vault.getFiles().find((file) => normalizeLookupKey(file.name) === normalizedBasename) ?? null;
 }
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await */
-// Mermaid is loaded dynamically via globals — no TS types available.
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await -- Mermaid loaded dynamically via globals, no TS types available */
+
 async function getMermaidRenderer(): Promise<{ render(id: string, code: string, host: HTMLElement): Promise<{ svg: string }> }> {
   if (!mermaidPromise) {
     mermaidPromise = Promise.resolve().then(() => (init_mermaid_core(), mermaid_core_exports)).then(async (module2) => {
@@ -244,8 +244,8 @@ async function getMermaidRenderer(): Promise<{ render(id: string, code: string, 
   return mermaidPromise;
 }
 /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
-// MathJax is loaded dynamically via import() — its modules have no TS types.
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return -- MathJax loaded dynamically via import(), no TS types available */
+
 async function getMathJaxContext(): Promise<{ convert: (expression: string, options: { display: boolean }) => unknown; adaptor: { outerHTML: (node: unknown) => string } }> {
   if (!mathJaxContextPromise) {
     mathJaxContextPromise = Promise.all([
@@ -356,7 +356,7 @@ async function renderMathToDataUrl(expression: string, display: boolean): Promis
   const svgMarkup = adaptor.outerHTML(node2);
   return svgMarkupToPngDataUrl(svgMarkup);
 }
-// eslint-disable-next-line @typescript-eslint/require-await
+// eslint-disable-next-line @typescript-eslint/require-await -- function signature requires Promise return for API consistency
 async function resolveVaultImageToDataUrl(app: App, sourceFile: TFile, rawLink: string): Promise<string | null> {
   const link3 = decodeURIComponent(rawLink).trim().replace(/^<|>$/g, "");
   if (/^(https?:|data:)/i.test(link3)) {

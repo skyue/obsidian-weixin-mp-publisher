@@ -251,7 +251,7 @@ class WeiXinMpPublisherPlugin extends Plugin {
       return;
     }
     try {
-      const html = payload.result.html as string;
+      const html = payload.result.html;
       if (typeof ClipboardItem !== "undefined" && navigator.clipboard.write) {
         const item = new ClipboardItem({
           "text/html": new Blob([html], { type: "text/html" }),
@@ -274,7 +274,7 @@ class WeiXinMpPublisherPlugin extends Plugin {
         new Notice("只支持打开 http(s) 外部链接。");
         return;
       }
-      /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call */
+      /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call -- Electron shell API has no TS types */
       const electronShell = window.require?.(
         "electron"
       );
@@ -316,7 +316,7 @@ class WeiXinMpPublisherPlugin extends Plugin {
   resolveAccessibleThemeId(themeId: string): string {
     return getThemeById(themeId).id;
   }
-  // eslint-disable-next-line @typescript-eslint/require-await
+  // eslint-disable-next-line @typescript-eslint/require-await -- method signature required by plugin base class, implementation is synchronous
   async ensureFeatureAccess(_feature: string, _label: string, _options?: Record<string, unknown>): Promise<boolean> {
     return true;
   }
@@ -796,7 +796,7 @@ class WeiXinMpPublisherPlugin extends Plugin {
         app: this.app,
         account,
         file: payload.file,
-        html: payload.result.html as string,
+        html: payload.result.html,
         frontmatter,
         existingDraftMediaId: existingDraftRecord?.mediaId ?? null,
         coverMediaRecords: this.settings.coverMediaRecords,

@@ -526,7 +526,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     this.moreMenuEl.createDiv({ cls: "wp-menu-sep" });
     this.addMoreMenuItem("help", "用户指南", null, () => {
       this.closeMoreMenu();
-      this.plugin.openExternalUrl("https://blog.discoverlabs.ac.cn/downloads/weixin-mp-publisher/");
+      this.plugin.openExternalUrl("https://www.skyue.com");
     });
   }
   addMoreMenuItem(icon2: string, text6: string, meta3: string | null, onClick: (e: MouseEvent) => void, metaVariant: string | null = null) {
@@ -753,7 +753,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     );
     const articleEl = this.previewEl.createDiv({ cls: "wp-article" });
     articleEl.empty();
-    const doc = new DOMParser().parseFromString(payload.result.html as string, "text/html");
+    const doc = new DOMParser().parseFromString(payload.result.html, "text/html");
     while (doc.body.firstChild) {
       articleEl.appendChild(doc.body.firstChild);
     }

@@ -171,7 +171,7 @@ export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
         });
       });
       new Setting(cardEl).setName("默认作者").setDesc("可选。右侧发布资料没有作者时，会先用这里自动填充。").addText((text6) => {
-        text6.setPlaceholder("例如：冉策 / HelloRanceLee").setValue(account.defaultAuthor ?? "").onChange((value2) => {
+        text6.setPlaceholder("例如：拾月 / SKYue").setValue(account.defaultAuthor ?? "").onChange((value2) => {
           runAsync3(async () => {
             account.defaultAuthor = value2.trim();
             await this.plugin.saveSettings();
