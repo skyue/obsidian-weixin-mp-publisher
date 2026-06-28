@@ -1,10 +1,20 @@
-import { TFile, requestUrl, normalizePath } from 'obsidian';
-import { HtmlImageRef, PublisherAccount, PublishInput, PublishResult, DraftRecord, CoverMediaRecord, ArticleImageRecord } from './types.ts';
+import { App, TFile, requestUrl, normalizePath } from 'obsidian';
+import { HtmlImageRef, PublisherAccount, PublishInput, PublishResult, ArticleImageRecord, ImageAsset, RehostResult, ParsedDataUrl } from './types.ts';
 import { resolveAssetLinkForWechat, lookupOriginalAssetSource } from './markdown-pipeline.ts';
 const PLACEHOLDER_PNG_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACWCAIAAAAUvlBOAAABmElEQVR4nO3SQQkAIADAQBObxDgGtIRDkIMLsMfGXBuuG88L+JKxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIvEAXiM4h0Wv2iTAAAAAElFTkSuQmCC";
 const RELAY_BASE_URL = "https://mp.skyue.com/api/proxy";
 const REQUEST_TIMEOUT_MS = 45e3;
 const UPLOAD_TIMEOUT_MS = 12e4;
+
+interface WechatRequestOptions {
+  method?: string;
+  body?: string;
+  headers?: Record<string, string>;
+  contentType?: string;
+  account?: PublisherAccount;
+  timeoutMs?: number;
+  requestLabel?: string;
+}
 const COVER_MAX_WIDTH = 1280;
 const COVER_MAX_HEIGHT = 1280;
 const COVER_JPEG_QUALITY = 0.82;
@@ -84,7 +94,7 @@ function parseDataUrl(dataUrl: string): ParsedDataUrl | null {
     return null;
   }
   const header = dataUrl.slice("data:".length, commaIndex);
-  let data6 = dataUrl.slice(commaIndex + 1);
+  const data6 = dataUrl.slice(commaIndex + 1);
   const headerParts = header.split(";").map((part) => part.trim()).filter(Boolean);
   const mimeType = headerParts.find((part) => part.includes("/"))?.toLowerCase() ?? "application/octet-stream";
   return {
@@ -127,7 +137,7 @@ function getMimeTypeByPath2(path4: string): string | null {
   const ext = path4.split(".").pop()?.toLowerCase() ?? "";
   return IMAGE_EXTENSIONS2.get(ext) ?? null;
 }
-function findVaultFile2(app: any, sourceFile: any, rawLink: string): any | null {
+function findVaultFile2(app: App, sourceFile: TFile, rawLink: string): TFile | null {
   const link3 = decodeURIComponent(rawLink).split("#")[0]?.trim().replace(/^<|>$/g, "");
   if (!link3 || /^(https?:|data:)/i.test(link3)) {
     return null;
@@ -188,7 +198,7 @@ function compactWechatHtmlForSubmit(html5: string): string {
 function countRemainingDataImages(html5: string): number {
   return (html5.match(/<img\b[^>]*\bsrc="data:[^"]*"/g) || []).length;
 }
-function safeGetVaultResourcePath(app: any, target: any): string | undefined {
+function safeGetVaultResourcePath(app: App, target: TFile | string): string | undefined {
   try {
     const value2 = app.vault.getResourcePath(target);
     return typeof value2 === "string" && value2.trim() ? value2 : void 0;
@@ -196,7 +206,7 @@ function safeGetVaultResourcePath(app: any, target: any): string | undefined {
     return void 0;
   }
 }
-function safeGetAdapterFullPath(app: any, normalizedPath: string): string | undefined {
+function safeGetAdapterFullPath(app: App, normalizedPath: string): string | undefined {
   try {
     const adapter2 = app.vault.adapter;
     if (typeof adapter2.getFullPath !== "function") {
@@ -229,7 +239,7 @@ function fallbackHashBytes(bytes: Uint8Array): string {
   return hash.toString(16).padStart(8, "0");
 }
 async function createCoverMediaSourceKey(asset: ImageAsset): Promise<string> {
-  const cryptoApi = globalThis.crypto;
+  const cryptoApi = window.crypto;
   const hash = cryptoApi?.subtle && typeof cryptoApi.subtle.digest === "function" ? bytesToHex(
     new Uint8Array(
       await cryptoApi.subtle.digest("SHA-256", bytesToArrayBuffer(asset.bytes))
@@ -237,27 +247,31 @@ async function createCoverMediaSourceKey(asset: ImageAsset): Promise<string> {
   ) : fallbackHashBytes(asset.bytes);
   return `${asset.contentType.toLowerCase()}:${asset.bytes.byteLength}:${hash}`;
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Electron Buffer 无 TS 类型
 function toElectronBinary(bytes: Uint8Array): any {
-  const runtime = globalThis;
+  const runtime = window;
   return runtime.Buffer?.from ? runtime.Buffer.from(bytes) : bytes;
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Electron nativeImage 无 TS 类型
 function getElectronNativeImage(): any {
   try {
-    const runtime = globalThis;
+    const runtime = window;
     const electronModule = runtime.require?.("electron");
     return electronModule?.nativeImage ?? null;
   } catch {
     return null;
   }
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Node require 无 TS 类型
 function getNodeRequire(): any {
   try {
-    const runtime = globalThis;
+    const runtime = window;
     return runtime.require ?? null;
   } catch {
     return null;
   }
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Node require 无 TS 类型
 function requireOptional(runtimeRequire: any, names: string[]): any {
   for (const name of names) {
     try {
@@ -324,6 +338,7 @@ function convertAssetWithSips(asset: ImageAsset, targetFormat: string): ImageAss
     return null;
   }
 }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Electron nativeImage 无 TS 类型
 function createElectronImageFromAsset(nativeImage: any, asset: ImageAsset): any {
   if (asset.filePath && nativeImage.createFromPath) {
     try {
@@ -467,7 +482,7 @@ async function loadImageFromBlob(blob: Blob): Promise<HTMLImageElement> {
   const objectUrl = URL.createObjectURL(blob);
   return loadImageFromUrl2(objectUrl, () => URL.revokeObjectURL(objectUrl));
 }
-async function loadRasterImage(asset: ImageAsset): Promise<{ drawable: any; width: number; height: number }> {
+async function loadRasterImage(asset: ImageAsset): Promise<{ drawable: CanvasImageSource; width: number; height: number }> {
   if (asset.contentType.includes("svg")) {
     return loadSvgImage(asset);
   }
@@ -571,7 +586,7 @@ async function convertAssetToPng(asset: ImageAsset): Promise<ImageAsset> {
     }
   }
   const rasterSource = await loadRasterImage(asset);
-  const canvas = document.createElement("canvas");
+  const canvas = activeDocument.createElement("canvas");
   canvas.width = rasterSource.width || 200;
   canvas.height = rasterSource.height || 150;
   const context = canvas.getContext("2d");
@@ -641,7 +656,7 @@ async function convertAssetToJpeg(asset: ImageAsset, options3?: { maxWidth?: num
   const scale3 = Math.min(1, widthScale, heightScale);
   const targetWidth = Math.max(1, Math.round(naturalWidth * scale3));
   const targetHeight = Math.max(1, Math.round(naturalHeight * scale3));
-  const canvas = document.createElement("canvas");
+  const canvas = activeDocument.createElement("canvas");
   canvas.width = targetWidth;
   canvas.height = targetHeight;
   const context = canvas.getContext("2d");
@@ -746,18 +761,18 @@ async function runWithTimeout<T>(task: Promise<T>, timeoutMs: number, label: str
     return await Promise.race([
       task,
       new Promise((_3, reject3) => {
-        timeoutId = setTimeout(() => {
+        timeoutId = window.setTimeout(() => {
           reject3(new Error(`${label}超时，请检查网络、微信白名单或图片大小后重试`));
         }, timeoutMs);
       })
     ]);
   } finally {
     if (timeoutId) {
-      clearTimeout(timeoutId);
+      window.clearTimeout(timeoutId);
     }
   }
 }
-export function buildWechatRequest(account: PublisherAccount, originalUrl: string, init3?: any): any {
+export function buildWechatRequest(account: PublisherAccount, originalUrl: string, init3?: WechatRequestOptions): Record<string, unknown> {
   if (account?.apiKey) {
     const urlObj = new URL(originalUrl);
     urlObj.searchParams.delete("access_token");
@@ -789,7 +804,7 @@ export function buildWechatRequest(account: PublisherAccount, originalUrl: strin
   };
 }
 
-async function requestWechatJson(url: string, init3?: any): Promise<any> {
+async function requestWechatJson(url: string, init3?: WechatRequestOptions): Promise<Record<string, unknown>> {
   const account = init3?.account;
   const req = buildWechatRequest(account, url, init3);
   const response = await runWithTimeout(
@@ -797,7 +812,7 @@ async function requestWechatJson(url: string, init3?: any): Promise<any> {
     init3?.timeoutMs ?? REQUEST_TIMEOUT_MS,
     init3?.requestLabel ?? "微信请求"
   );
-  let data6 = response.json;
+  const data6 = response.json;
   if (response.status >= 400) {
     throw new Error(`HTTP ${response.status}: ${response.text}`);
   }
@@ -814,7 +829,7 @@ function isInvalidImageFormatError(error3: unknown): boolean {
 }
 async function getAccessToken(account: PublisherAccount): Promise<string> {
   const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${encodeURIComponent(account.appId)}&secret=${encodeURIComponent(account.appSecret)}`;
-  let data6 = await requestWechatJson(url, {
+  const data6 = await requestWechatJson(url, {
     account,
     requestLabel: "获取 access_token"
   });
@@ -872,7 +887,7 @@ async function fetchBinaryAsset(url: string): Promise<ImageAsset> {
     sourceUrl: url
   };
 }
-async function readBinaryAssetFromAdapterPath(app: any, rawPath: string): Promise<ImageAsset | null> {
+async function readBinaryAssetFromAdapterPath(app: App, rawPath: string): Promise<ImageAsset | null> {
   const normalizedPath = (0, normalizePath)(decodeURIComponent(rawPath.trim()));
   const mimeType = getMimeTypeByPath2(normalizedPath);
   if (!mimeType || !await app.vault.adapter.exists(normalizedPath)) {
@@ -888,7 +903,7 @@ async function readBinaryAssetFromAdapterPath(app: any, rawPath: string): Promis
     filePath: safeGetAdapterFullPath(app, normalizedPath)
   };
 }
-async function resolveVaultBinaryAsset(app: any, sourceFile: any, rawLink: string): Promise<ImageAsset | null> {
+async function resolveVaultBinaryAsset(app: App, sourceFile: TFile, rawLink: string): Promise<ImageAsset | null> {
   const file = findVaultFile2(app, sourceFile, rawLink);
   if (!(file instanceof TFile)) {
     return null;
@@ -906,7 +921,7 @@ async function resolveVaultBinaryAsset(app: any, sourceFile: any, rawLink: strin
     filePath: safeGetAdapterFullPath(app, file.path)
   };
 }
-async function resolveCoverAsset(app: any, file: any, coverValue: string): Promise<ImageAsset> {
+async function resolveCoverAsset(app: App, file: TFile, coverValue: string): Promise<ImageAsset> {
   if (/^(https?:|data:)/i.test(coverValue)) {
     return fetchBinaryAsset(coverValue);
   }
@@ -916,7 +931,8 @@ async function resolveCoverAsset(app: any, file: any, coverValue: string): Promi
       const rawPath2 = decodeURIComponent(appUrl.pathname.replace(/^\//, ""));
       const localAsset2 = await readBinaryAssetFromAdapterPath(app, rawPath2);
       if (localAsset2) return localAsset2;
-    } catch (_2) {
+    } catch {
+      // ignore
     }
   }
   const vaultAsset = await resolveVaultBinaryAsset(app, file, coverValue);
@@ -934,13 +950,15 @@ async function resolveCoverAsset(app: any, file: any, coverValue: string): Promi
       const resolvedRawPath = decodeURIComponent(resolvedUrl.pathname.replace(/^\//, ""));
       const assetFromResolved = await readBinaryAssetFromAdapterPath(app, resolvedRawPath);
       if (assetFromResolved) return assetFromResolved;
-    } catch (_2) {
+    } catch {
+      // ignore
     }
   }
   return fetchBinaryAsset(resolvedCoverUrl);
 }
-async function resolveArticleImageAsset(app: any, file: any, source: string): Promise<ImageAsset> {
+async function resolveArticleImageAsset(app: App, file: TFile, source: string): Promise<ImageAsset> {
   if (source.startsWith("blob:")) {
+     
     const response = await fetch(source);
     const blob = await response.blob();
     const arrayBuffer = await blob.arrayBuffer();
@@ -994,7 +1012,7 @@ async function uploadWechatImage(account: PublisherAccount, accessToken: string,
       `${endpoint === "material" ? "封面图片预处理失败" : "正文图片预处理失败"}：${error3 instanceof Error ? error3.message : "未知错误"}；文件：${asset.filename}；类型：${asset.contentType}${asset.filePath ? `；文件路径：${previewSource(asset.filePath)}` : ""}${asset.sourceUrl ? `；来源：${previewSource(asset.sourceUrl)}` : ""}`
     );
   }
-  const attemptUpload = async (currentAsset: ImageAsset): Promise<any> => {
+  const attemptUpload = async (currentAsset: ImageAsset): Promise<Record<string, unknown>> => {
     const payload = buildMultipartBody(currentAsset);
     return requestWechatJson(uploadUrl, {
       account,
@@ -1043,7 +1061,7 @@ async function uploadWechatImage(account: PublisherAccount, accessToken: string,
   }
   return data6.media_id;
 }
-async function rehostArticleImages(app: any, file: any, html5: string, accessToken: string, account: PublisherAccount, articleImageRecords: ArticleImageRecord[], onProgress?: (message: string) => void): Promise<RehostResult> {
+async function rehostArticleImages(app: App, file: TFile, html5: string, accessToken: string, account: PublisherAccount, articleImageRecords: ArticleImageRecord[], onProgress?: (message: string) => void): Promise<RehostResult> {
   const document2 = new DOMParser().parseFromString(html5, "text/html");
   const imageElements = Array.from(document2.querySelectorAll("img"));
   const refs = extractHtmlImageRefs(html5);
@@ -1105,13 +1123,13 @@ async function rehostArticleImages(app: any, file: any, html5: string, accessTok
     articleImageRecords: records
   };
 }
-function pickTitle(file: any, frontmatter: any): string {
+function pickTitle(file: TFile, frontmatter: Record<string, unknown>): string {
   if (typeof frontmatter.title === "string" && frontmatter.title.trim()) {
     return frontmatter.title.trim();
   }
   return file.basename;
 }
-async function resolveExistingDraft(accessToken: string, account: PublisherAccount, options3: { mediaId?: string | null; title?: string }): Promise<any | null> {
+async function resolveExistingDraft(accessToken: string, account: PublisherAccount, options3: { mediaId?: string | null; title?: string }): Promise<{ mediaId: string; title: string; updateTime: number } | null> {
   const normalizedMediaId = options3.mediaId?.trim() ?? "";
   const normalizedTitle = options3.title?.trim() ?? "";
   if (!normalizedTitle && !normalizedMediaId) {
@@ -1121,7 +1139,7 @@ async function resolveExistingDraft(accessToken: string, account: PublisherAccou
   const pageSize = 20;
   let latestTitleMatch = null;
   while (offset < 200) {
-    let data6 = await requestWechatJson(`https://api.weixin.qq.com/cgi-bin/draft/batchget?access_token=${accessToken}`, {
+    const data6 = await requestWechatJson(`https://api.weixin.qq.com/cgi-bin/draft/batchget?access_token=${accessToken}`, {
       account,
       method: "POST",
       body: JSON.stringify({
@@ -1197,7 +1215,7 @@ async function validateWechatMaterialMediaId(accessToken: string, account: Publi
   if (!maybeJson) {
     return true;
   }
-  let data6 = response.json;
+  const data6 = response.json;
   if (typeof data6?.errcode !== "number" || data6.errcode === 0) {
     return true;
   }
@@ -1353,7 +1371,7 @@ export async function publishDraftToWechat(input: PublishInput): Promise<Publish
     }
   }
   input.onProgress?.(`${coverProgressPrefix}，正在提交草稿到微信...`);
-  let data6 = await requestWechatJson(
+  const data6 = await requestWechatJson(
     `https://api.weixin.qq.com/cgi-bin/draft/add?access_token=${accessToken}`,
     {
       account: input.account,

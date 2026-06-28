@@ -125,7 +125,7 @@ async function loadImageFromUrl(url) {
 async function svgMarkupToPngDataUrl(svgMarkup) {
   const normalized = normalizeSvgMarkup(svgMarkup);
   const image = await loadImageFromUrl(createSvgDataUrl(normalized.markup));
-  const canvas = document.createElement("canvas");
+  const canvas = activeDocument.createElement("canvas");
   canvas.width = normalized.width;
   canvas.height = normalized.height;
   const context = canvas.getContext("2d");
@@ -274,9 +274,9 @@ async function getMathJaxContext() {
   return await mathJaxContextPromise;
 }
 function createHiddenRenderHost(className) {
-  const host = document.createElement("div");
+  const host = activeDocument.createElement("div");
   host.className = `weixin-mp-publisher-hidden-host ${className}`;
-  document.body.appendChild(host);
+  activeDocument.body.appendChild(host);
   return host;
 }
 function waitForMermaidSvg(container2, timeout2) {
@@ -290,12 +290,12 @@ function waitForMermaidSvg(container2, timeout2) {
       const el = container2.querySelector("svg");
       if (el instanceof SVGSVGElement) {
         observer.disconnect();
-        clearTimeout(timer3);
+        window.clearTimeout(timer3);
         resolve2(el);
       }
     });
     observer.observe(container2, { childList: true, subtree: true });
-    const timer3 = setTimeout(() => {
+    const timer3 = window.setTimeout(() => {
       observer.disconnect();
       const el = container2.querySelector("svg");
       resolve2(el instanceof SVGSVGElement ? el : null);
@@ -303,9 +303,9 @@ function waitForMermaidSvg(container2, timeout2) {
   });
 }
 async function renderMermaidViaObsidian(app, sourceFile, code) {
-  const container2 = document.createElement("div");
+  const container2 = activeDocument.createElement("div");
   container2.className = "wxp-mermaid-obsidian-render";
-  document.body.appendChild(container2);
+  activeDocument.body.appendChild(container2);
   const component2 = new Component();
   component2.load();
   try {
@@ -334,7 +334,7 @@ async function renderMermaidToDataUrl(app, sourceFile, code) {
     console.warn("Obsidian Mermaid 渲染失败，回退到 npm mermaid", obsidianError);
   }
   const mermaid2 = await getMermaidRenderer();
-  const uid = globalThis.crypto?.randomUUID?.().replaceAll("-", "") ?? Date.now().toString(16);
+  const uid = window.crypto?.randomUUID?.().replaceAll("-", "") ?? Date.now().toString(16);
   const renderId = `wxpmermaid${uid}`;
   const host = createHiddenRenderHost("wxp-mermaid-render-host");
   try {
@@ -377,7 +377,7 @@ export function lookupOriginalAssetSource(resolvedUrl) {
 }
 export async function preprocessMarkdownForWechat(app, sourceFile, markdown2) {
   let output2 = markdown2.replace(
-    /(?<!!)\[\[([^\[\]]+?)\]\]/g,
+    /(?<!!)\[\[([^[\]]+?)\]\]/g,
     (_match, inner2) => {
       const parts2 = inner2.split("|");
       const target3 = parts2[0]?.trim() ?? "";

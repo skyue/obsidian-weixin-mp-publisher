@@ -73,13 +73,13 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     this.metaEl = this.containerEl.createDiv({ cls: "wp-status" });
     this.previewEl = this.containerEl.createDiv({ cls: "wp-preview-wrap" });
     this.onDocumentMouseDown = (e3) => this.handleDocumentMouseDown(e3);
-    document.addEventListener("mousedown", this.onDocumentMouseDown);
+    activeDocument.addEventListener("mousedown", this.onDocumentMouseDown);
     await this.refresh();
   }
   async onClose() {
     this.stopScrollSync();
     if (this.onDocumentMouseDown) {
-      document.removeEventListener("mousedown", this.onDocumentMouseDown);
+      activeDocument.removeEventListener("mousedown", this.onDocumentMouseDown);
       this.onDocumentMouseDown = null;
     }
     await super.onClose();
@@ -639,10 +639,10 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     this.syncStatusLabel = "请先滚动编辑器校准";
     const captureHandler = (e3) => {
       const target = e3.target;
-      if (!target || target === document.documentElement || target === document.body) return;
+      if (!target || target === activeDocument.documentElement || target === activeDocument.body) return;
       if (target === this.previewEl || this.previewEl?.contains(target)) return;
       if (target.scrollHeight <= target.clientHeight + 10) return;
-      document.removeEventListener("scroll", captureHandler, true);
+      activeDocument.removeEventListener("scroll", captureHandler, true);
       this.editorScrollCaptureCleanup = null;
       this.editorScrollEl = target;
       this.syncStatusLabel = "已开启";
@@ -666,16 +666,16 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
         } catch (err) {
           console.error("[Sync E→P] error:", err);
         } finally {
-          setTimeout(() => {
+          window.setTimeout(() => {
             this.isSyncing = false;
           }, 80);
         }
       };
       target.addEventListener("scroll", this.onEditorScrollBound);
     };
-    document.addEventListener("scroll", captureHandler, { capture: true });
+    activeDocument.addEventListener("scroll", captureHandler, { capture: true });
     this.editorScrollCaptureCleanup = () => {
-      document.removeEventListener("scroll", captureHandler, true);
+      activeDocument.removeEventListener("scroll", captureHandler, true);
     };
     this.onPreviewScrollBound = () => {
       if (this.isSyncing || !this.previewEl || !this.syncEnabled || !this.editorScrollEl) return;
@@ -697,7 +697,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
       } catch (err) {
         console.error("[Sync P→E] error:", err);
       } finally {
-        setTimeout(() => {
+        window.setTimeout(() => {
           this.isSyncing = false;
         }, 80);
       }
@@ -832,7 +832,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
       this.appendIcon(el, "image", { size: iconSize });
       return;
     }
-    const img = document.createElement("img");
+    const img = activeDocument.createElement("img");
     img.src = src;
     img.alt = "cover";
     img.className = "wp-cover-img";
@@ -860,7 +860,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
       const mtime = abstract instanceof TFile ? abstract.stat.mtime : 0;
       if (mtime && !base.includes("?")) base += "?t=" + mtime;
       return base;
-    } catch (e3) {
+    } catch {
       return null;
     }
   }
@@ -913,7 +913,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
   // ============================================================
   appendIcon(container2, name, opts = {}) {
     const size4 = opts.size;
-    const svg2 = document.createElementNS(SVG_NS, "svg");
+    const svg2 = activeDocument.createElementNS(SVG_NS, "svg");
     svg2.setAttribute("viewBox", "0 0 24 24");
     svg2.setAttribute("fill", "none");
     svg2.setAttribute("stroke", "currentColor");
@@ -926,7 +926,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     }
     const paths = ICON_PATHS[name] ?? [];
     for (const spec of paths) {
-      const el = document.createElementNS(SVG_NS, spec.tag);
+      const el = activeDocument.createElementNS(SVG_NS, spec.tag);
       for (const [k3, v3] of Object.entries(spec.attrs)) {
         el.setAttribute(k3, v3);
       }

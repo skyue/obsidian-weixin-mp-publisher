@@ -11,7 +11,7 @@ import typescript from 'highlight.js/lib/languages/typescript';
 import xml from 'highlight.js/lib/languages/xml';
 import yaml from 'highlight.js/lib/languages/yaml';
 
-let MAC_DOTS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 130" width="45" height="13" aria-hidden="true"><ellipse cx="50" cy="65" rx="50" ry="52" stroke="rgb(220,60,54)" stroke-width="2" fill="rgb(237,108,96)"/><ellipse cx="225" cy="65" rx="50" ry="52" stroke="rgb(218,151,33)" stroke-width="2" fill="rgb(247,193,81)"/><ellipse cx="400" cy="65" rx="50" ry="52" stroke="rgb(27,161,37)" stroke-width="2" fill="rgb(100,200,86)"/></svg>`;
+const MAC_DOTS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 450 130" width="45" height="13" aria-hidden="true"><ellipse cx="50" cy="65" rx="50" ry="52" stroke="rgb(220,60,54)" stroke-width="2" fill="rgb(237,108,96)"/><ellipse cx="225" cy="65" rx="50" ry="52" stroke="rgb(218,151,33)" stroke-width="2" fill="rgb(247,193,81)"/><ellipse cx="400" cy="65" rx="50" ry="52" stroke="rgb(27,161,37)" stroke-width="2" fill="rgb(100,200,86)"/></svg>`;
 hljs.registerLanguage("bash", bash);
 hljs.registerLanguage("sh", bash);
 hljs.registerLanguage("shell", bash);
@@ -30,7 +30,7 @@ hljs.registerLanguage("xml", xml);
 hljs.registerLanguage("html", xml);
 hljs.registerLanguage("yaml", yaml);
 hljs.registerLanguage("yml", yaml);
-let GITHUB_DARK_HIGHLIGHT_CSS = `
+const GITHUB_DARK_HIGHLIGHT_CSS = `
 .hljs{color:#e6edf3;background:#0d1117}
 .hljs-comment,.hljs-quote{color:#8b949e}
 .hljs-variable,.hljs-template-variable,.hljs-tag,.hljs-name,.hljs-selector-id,.hljs-selector-class,.hljs-regexp,.hljs-deletion{color:#ff7b72}
@@ -42,7 +42,7 @@ let GITHUB_DARK_HIGHLIGHT_CSS = `
 .hljs-emphasis{font-style:italic}
 .hljs-strong{font-weight:700}
 `;
-let GITHUB_HIGHLIGHT_CSS = `
+const GITHUB_HIGHLIGHT_CSS = `
 .hljs{color:#24292e;background:#f6f8fa}
 .hljs-comment,.hljs-quote{color:#6a737d}
 .hljs-keyword,.hljs-selector-tag,.hljs-subst{color:#d73a49}
@@ -53,14 +53,14 @@ let GITHUB_HIGHLIGHT_CSS = `
 .hljs-emphasis{font-style:italic}
 .hljs-strong{font-weight:700}
 `;
-let FONT_PRESET_STACKS = {
+const FONT_PRESET_STACKS = {
   "theme-default": "",
   sans: "'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', 'Source Han Sans SC', 'Helvetica Neue', Arial, sans-serif",
   serif: "'Georgia', 'Songti SC', 'Noto Serif SC', serif",
   mono: "'SFMono-Regular', 'JetBrains Mono', 'Fira Code', 'Microsoft YaHei Mono', monospace",
   rounded: "'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif"
 };
-let CALLOUT_LABELS = {
+const CALLOUT_LABELS = {
   abstract: "摘要",
   attention: "注意",
   bug: "问题",
@@ -258,7 +258,7 @@ function renderRubyHtml(baseText, rubyText) {
 }
 function transformHashtags(markdown2) {
   return markdown2.replace(
-    /(```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]+`)|(?<!\w)#([\p{L}\p{N}_\-\/]+)/gu,
+    /(```[\s\S]*?```|~~~[\s\S]*?~~~|`[^`\n]+`)|(?<!\w)#([\p{L}\p{N}_\-/]+)/gu,
     (match2, codeBlock, tagContent) => {
       if (codeBlock !== void 0) return codeBlock;
       if (!tagContent) return match2;

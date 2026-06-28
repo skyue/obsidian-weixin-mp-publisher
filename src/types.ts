@@ -1,3 +1,4 @@
+import { App, TFile } from 'obsidian';
 import { createEntitlementsForPlan } from '../packages/shared-types/src/index.ts';
 
 const DRAFT_RECORD_RETENTION_DAYS = 14;
@@ -25,7 +26,7 @@ export const DEFAULT_SETTINGS = {
 };
 export function createEmptyAccount() {
   return {
-    id: globalThis.crypto?.randomUUID?.() ?? `account-${Date.now()}`,
+    id: window.crypto?.randomUUID?.() ?? `account-${Date.now()}`,
     name: "新账号",
     appId: "",
     appSecret: "",
@@ -44,7 +45,7 @@ export function createEmptyAccount() {
   };
 }
 export function createStylePresetId() {
-  return globalThis.crypto?.randomUUID?.() ?? `style-preset-${Date.now()}`;
+  return window.crypto?.randomUUID?.() ?? `style-preset-${Date.now()}`;
 }
 export function cloneStyleOverrides(styleOverrides) {
   return { ...styleOverrides };
@@ -53,7 +54,7 @@ export function normalizePublisherAccount(account) {
   return {
     ...createEmptyAccount(),
     ...account ?? {},
-    id: typeof account?.id === "string" && account.id.trim() ? account.id : globalThis.crypto?.randomUUID?.() ?? `account-${Date.now()}`,
+    id: typeof account?.id === "string" && account.id.trim() ? account.id : window.crypto?.randomUUID?.() ?? `account-${Date.now()}`,
     name: typeof account?.name === "string" && account.name.trim() ? account.name : "未命名账号",
     appId: typeof account?.appId === "string" ? account.appId : "",
     appSecret: typeof account?.appSecret === "string" ? account.appSecret : "",
@@ -182,17 +183,27 @@ export interface StyleOverrides {
   figureCaptionMode: string;
 }
 
+export interface StylePreset {
+  id: string;
+  name: string;
+  styleOverrides: StyleOverrides;
+}
+
+export interface Entitlements {
+  enabled: Record<string, boolean>;
+}
+
 export interface PublisherSettings {
   defaultThemeId: string;
   defaultStyleId: string;
   styleOverrides: StyleOverrides;
   preferredAccountId: string | null;
   accounts: PublisherAccount[];
-  savedStylePresets: any[];
+  savedStylePresets: StylePreset[];
   draftRecords: DraftRecord[];
   coverMediaRecords: CoverMediaRecord[];
   articleImageRecords: ArticleImageRecord[];
-  entitlements: any;
+  entitlements: Entitlements;
 }
 
 export interface ImageAsset {
@@ -221,11 +232,11 @@ export interface RehostResult {
 }
 
 export interface PublishInput {
-  app: any;
+  app: App;
   account: PublisherAccount;
-  file: any;
+  file: TFile;
   html: string;
-  frontmatter: any;
+  frontmatter: Record<string, unknown>;
   existingDraftMediaId: string | null;
   coverMediaRecords: CoverMediaRecord[];
   articleImageRecords: ArticleImageRecord[];

@@ -1,4 +1,4 @@
-export let BUILTIN_THEMES = [
+export const BUILTIN_THEMES = [
   {
     id: "classic",
     label: "经典蓝",
@@ -350,7 +350,7 @@ export let BUILTIN_THEMES = [
 export function getThemeById(themeId) {
   return BUILTIN_THEMES.find((theme) => theme.id === themeId) ?? BUILTIN_THEMES[0];
 }
-export let BUILTIN_STYLE_PROFILES = [
+export const BUILTIN_STYLE_PROFILES = [
   {
     id: "balanced",
     label: "均衡版",

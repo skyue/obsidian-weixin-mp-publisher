@@ -1,4 +1,4 @@
-import { Plugin, Modal, Setting, Notice, TFile, MarkdownView, requestUrl, normalizePath } from 'obsidian';
+import { Plugin, Modal, Setting, Notice, TFile, MarkdownView, requestUrl, normalizePath, DataAdapter } from 'obsidian';
 import { renderMarkdownToWechatHtml } from '../packages/render-core/src/index.ts';
 import { BUILTIN_THEMES, BUILTIN_STYLE_PROFILES, getThemeById, getStyleProfileById } from '../packages/theme-pack/src/index.ts';
 import { DEFAULT_SETTINGS, cloneDraftRecords, pruneDraftRecords, createStylePresetId, cloneStyleOverrides, normalizePublisherAccount, cloneCoverMediaRecords, pruneCoverMediaRecords, cloneArticleImageRecords, pruneArticleImageRecords } from './types.ts';
@@ -263,7 +263,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
         new Notice("只支持打开 http(s) 外部链接。");
         return;
       }
-      const electronShell = globalThis.require?.(
+      const electronShell = window.require?.(
         "electron"
       );
       if (electronShell?.shell?.openExternal) {
@@ -509,7 +509,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
       leaf = this.app.workspace.getRightLeaf(false) ?? this.app.workspace.getLeaf(false);
       await leaf.setViewState({ type: PREVIEW_VIEW_TYPE, active: true });
     }
-    this.app.workspace.revealLeaf(leaf);
+    await this.app.workspace.revealLeaf(leaf);
     await leaf.view.refresh();
   }
   async refreshPreviewLeaves() {
@@ -845,7 +845,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
   }
   async pickImageFile() {
     return new Promise((resolve2) => {
-      const input = document.createElement("input");
+      const input = activeDocument.createElement("input");
       input.type = "file";
       input.accept = "image/png,image/jpeg,image/jpg,image/gif,image/webp,image/svg+xml";
       input.onchange = () => {
@@ -870,7 +870,7 @@ const WeiXinMpPublisherPlugin = class extends Plugin {
 
 export default WeiXinMpPublisherPlugin;
 
-async function ensureAdapterFolder(adapter2: any, targetPath: string): Promise<void> {
+async function ensureAdapterFolder(adapter2: DataAdapter, targetPath: string): Promise<void> {
   const segments = targetPath.split("/").filter(Boolean);
   let currentPath = "";
   for (const segment of segments) {
