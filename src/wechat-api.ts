@@ -247,7 +247,7 @@ async function createCoverMediaSourceKey(asset: ImageAsset): Promise<string> {
   ) : fallbackHashBytes(asset.bytes);
   return `${asset.contentType.toLowerCase()}:${asset.bytes.byteLength}:${hash}`;
 }
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- Electron / Node.js interop helpers, platform APIs have no TS types */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument -- Electron / Node.js interop helpers, platform APIs have no TS types */
 
 function toElectronBinary(bytes: Uint8Array): unknown {
   const runtime = window;
@@ -378,7 +378,7 @@ function createElectronImageFromAsset(nativeImage: unknown, asset: ImageAsset): 
     return null;
   }
 }
-/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument -- end of Electron/Node interop helpers block */
 function stringToBase642(value2: string): string {
   const encoded = new TextEncoder().encode(value2);
   let binary2 = "";
@@ -562,7 +562,7 @@ async function loadSvgImage(asset: ImageAsset): Promise<{ drawable: HTMLImageEle
   };
 }
 async function convertAssetToPng(asset: ImageAsset): Promise<ImageAsset> {
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call -- Electron nativeImage API has no TS types */
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument -- Electron nativeImage API has no TS types */
   const nativeImage = getElectronNativeImage();
   if (nativeImage) {
     const image = createElectronImageFromAsset(nativeImage, asset);
@@ -578,7 +578,7 @@ async function convertAssetToPng(asset: ImageAsset): Promise<ImageAsset> {
       contentType: asset.contentType
     });
   }
-  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call */
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument -- end of Electron image conversion block (png) */
   if (!asset.contentType.includes("svg")) {
     const sipsResult = convertAssetWithSips(asset, "png");
     if (sipsResult) {
@@ -610,7 +610,7 @@ async function convertAssetToPng(asset: ImageAsset): Promise<ImageAsset> {
   };
 }
 async function convertAssetToJpeg(asset: ImageAsset, options3?: { maxWidth?: number; maxHeight?: number; quality?: number }): Promise<ImageAsset> {
-  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- Electron nativeImage API has no TS types */
+  /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument -- Electron nativeImage API has no TS types */
   const nativeImage = getElectronNativeImage();
   if (nativeImage) {
     let image = createElectronImageFromAsset(nativeImage, asset);
@@ -643,7 +643,7 @@ async function convertAssetToJpeg(asset: ImageAsset, options3?: { maxWidth?: num
       contentType: asset.contentType
     });
   }
-  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
+  /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument -- end of Electron image conversion block (jpeg) */
   if (!asset.contentType.includes("svg")) {
     const sipsResult = convertAssetWithSips(asset, "jpeg");
     if (sipsResult) {
@@ -960,7 +960,7 @@ async function resolveCoverAsset(app: App, file: TFile, coverValue: string): Pro
 }
 async function resolveArticleImageAsset(app: App, file: TFile, source: string): Promise<ImageAsset> {
   if (source.startsWith("blob:")) {
-     
+    // requestUrl cannot handle blob: URLs — blob data lives in browser memory, not on the network
     const response = await fetch(source);
     const blob = await response.blob();
     const arrayBuffer = await blob.arrayBuffer();

@@ -1,7 +1,27 @@
-import { Modal, Notice, Setting, TextComponent, ExtraButtonComponent } from 'obsidian';
+import { Modal, Notice, Setting, TextComponent, ExtraButtonComponent, App } from 'obsidian';
 import type WeiXinMpPublisherPlugin from './main.ts';
 import { createEmptyAccount } from './types.ts';
 
+function showConfirm(app: App, message: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const modal = new Modal(app);
+    modal.titleEl.setText("确认操作");
+    modal.contentEl.createEl("p", { text: message });
+    const buttonContainer = modal.contentEl.createDiv({ cls: "weixin-mp-publisher-confirm-buttons" });
+    const cancelBtn = buttonContainer.createEl("button", { text: "取消" });
+    cancelBtn.addEventListener("click", () => {
+      resolve(false);
+      modal.close();
+    });
+    const confirmBtn = buttonContainer.createEl("button", { text: "确定", cls: "mod-cta" });
+    confirmBtn.addEventListener("click", () => {
+      resolve(true);
+      modal.close();
+    });
+    modal.onClose = () => resolve(false);
+    modal.open();
+  });
+}
 
 function runAsync(action: () => Promise<void>) {
   void action().catch((error3) => {
@@ -147,9 +167,7 @@ export const AccountConfigModal = class extends Modal {
         button.setTooltip("删除账号");
         button.onClick(() => {
           runAsync(async () => {
-            const confirmed = window.confirm(
-              `确定要删除账号「${account.name || "未命名账号"}」吗？`
-            );
+            const confirmed = await showConfirm(this.app, `确定要删除账号「${account.name || "未命名账号"}」吗？`);
             if (!confirmed) return;
             await this.plugin.clearAccountDefaultCover(account.id);
             this.plugin.settings.accounts = this.plugin.settings.accounts.filter(

@@ -243,7 +243,7 @@ async function getMermaidRenderer(): Promise<{ render(id: string, code: string, 
   }
   return mermaidPromise;
 }
-/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await */
+/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await -- end of Mermaid dynamic import block */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return -- MathJax loaded dynamically via import(), no TS types available */
 
 async function getMathJaxContext(): Promise<{ convert: (expression: string, options: { display: boolean }) => unknown; adaptor: { outerHTML: (node: unknown) => string } }> {
@@ -278,7 +278,7 @@ async function getMathJaxContext(): Promise<{ convert: (expression: string, opti
   }
   return await mathJaxContextPromise;
 }
-/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return */
+/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return -- end of MathJax dynamic import block */
 function createHiddenRenderHost(className: string): HTMLElement {
   const host = activeDocument.createElement("div");
   host.className = `weixin-mp-publisher-hidden-host ${className}`;
@@ -288,13 +288,13 @@ function createHiddenRenderHost(className: string): HTMLElement {
 function waitForMermaidSvg(container2: HTMLElement, timeout2: number): Promise<SVGSVGElement> {
   return new Promise((resolve2) => {
     const existing = container2.querySelector("svg");
-    if (existing instanceof SVGSVGElement) {
+    if (existing) {
       resolve2(existing);
       return;
     }
     const observer = new MutationObserver(() => {
       const el = container2.querySelector("svg");
-      if (el instanceof SVGSVGElement) {
+      if (el) {
         observer.disconnect();
         window.clearTimeout(timer3);
         resolve2(el);
@@ -304,7 +304,7 @@ function waitForMermaidSvg(container2: HTMLElement, timeout2: number): Promise<S
     const timer3 = window.setTimeout(() => {
       observer.disconnect();
       const el = container2.querySelector("svg");
-      resolve2(el instanceof SVGSVGElement ? el : null);
+      resolve2(el ?? null);
     }, timeout2);
   });
 }
