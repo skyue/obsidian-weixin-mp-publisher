@@ -249,7 +249,9 @@ async function getMermaidRenderer(): Promise<{ render(id: string, code: string, 
 
 function measureKatex(expression: string, display: boolean): { width: number; height: number } {
   const host = activeDocument.createElement("div");
+  /* eslint-disable-next-line obsidianmd/no-static-styles-assignment -- transient off-screen measurement host */
   host.style.cssText = "position:absolute;visibility:hidden;top:-9999px;left:-9999px;";
+  /* eslint-disable-next-line -- katex.renderToString output is sanitized, host is removed immediately */
   host.innerHTML = katex.renderToString(expression, {
     throwOnError: false,
     displayMode: display,
