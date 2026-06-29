@@ -52,7 +52,7 @@ async function build() {
     entryPoints: [path.join(ROOT, 'src', 'main.ts')],
     bundle: true,
     outfile: OUT_FILE,
-    platform: 'node',
+    platform: 'browser',
     format: 'cjs',
     target: 'es2022',
     external: ['obsidian'],
