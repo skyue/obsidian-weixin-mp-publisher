@@ -1,7 +1,11 @@
 import { App, TFile, requestUrl, normalizePath } from 'obsidian';
-import { HtmlImageRef, PublisherAccount, PublishInput, PublishResult, ArticleImageRecord, CoverMediaRecord, ImageAsset, RehostResult, ParsedDataUrl, WechatApiJson } from './types.ts';
+import { HtmlImageRef, PublisherAccount, PublishInput, PublishResult, ArticleImageRecord, CoverMediaRecord, ImageAsset, RehostResult, ParsedDataUrl, WechatApiJson, ImageFailure } from './types.ts';
 import { resolveAssetLinkForWechat, lookupOriginalAssetSource } from './markdown-pipeline.ts';
 const PLACEHOLDER_PNG_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACWCAIAAAAUvlBOAAABmElEQVR4nO3SQQkAIADAQBObxDgGtIRDkIMLsMfGXBuuG88L+JKxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIvEAXiM4h0Wv2iTAAAAAElFTkSuQmCC";
+const FAILURE_PLACEHOLDER_DATA_URL = "data:image/svg+xml;base64," + btoa(
+  '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180"><rect width="320" height="180" fill="#f5f5f5" stroke="#e0e0e0" stroke-width="1"/><g transform="translate(160,75)"><circle cx="0" cy="0" r="18" fill="#fff" stroke="#d0d0d0" stroke-width="2"/><line x1="-9" y1="-9" x2="9" y2="9" stroke="#d0d0d0" stroke-width="2"/><line x1="9" y1="-9" x2="-9" y2="9" stroke="#d0d0d0" stroke-width="2"/></g><text x="160" y="130" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#999">图片上传失败</text><text x="160" y="155" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#bbb">可修复后重新发布</text></svg>'
+);
+const UPLOAD_RETRY_DELAYS_MS = [1000, 2000];
 const RELAY_BASE_URL = "https://mp.skyue.com/api/proxy";
 const REQUEST_TIMEOUT_MS = 45e3;
 const UPLOAD_TIMEOUT_MS = 12e4;
@@ -829,6 +833,43 @@ function isInvalidImageFormatError(error3: unknown): boolean {
   }
   return /invalid image format/i.test(error3.message) || /invalid image size/i.test(error3.message) || /\(40137\)/.test(error3.message) || /\(40009\)/.test(error3.message);
 }
+function isRetryableUploadError(error3: unknown): boolean {
+  if (!(error3 instanceof Error)) {
+    return false;
+  }
+  const message = error3.message;
+  if (/超时/.test(message) || /timeout/i.test(message)) {
+    return true;
+  }
+  if (/网络/.test(message) || /network/i.test(message) || /ECONN/i.test(message) || /ETIMEDOUT/i.test(message) || /ENOTFOUND/i.test(message)) {
+    return true;
+  }
+  if (/HTTP 5\d\d/.test(message)) {
+    return true;
+  }
+  return false;
+}
+async function runWithRetry<T>(fn: () => Promise<T>, retryDelays: number[], errorLabel: string): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retryDelays.length; attempt++) {
+    try {
+      return await fn();
+    } catch (error3) {
+      lastError = error3;
+      if (attempt < retryDelays.length && isRetryableUploadError(error3)) {
+        const delay = retryDelays[attempt];
+        console.warn(
+          `[WeiXin MP Publisher] ${errorLabel}第 ${attempt + 1} 次失败，${delay / 1000}s 后重试`,
+          error3 instanceof Error ? error3.message : error3
+        );
+        await new Promise((resolve2) => setTimeout(resolve2, delay));
+        continue;
+      }
+      throw error3;
+    }
+  }
+  throw lastError;
+}
 async function getAccessToken(account: PublisherAccount): Promise<string> {
   const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${encodeURIComponent(account.appId)}&secret=${encodeURIComponent(account.appSecret)}`;
   const data6 = await requestWechatJson(url, {
@@ -1027,7 +1068,7 @@ async function uploadWechatImage(account: PublisherAccount, accessToken: string,
   };
   let data6: Record<string, unknown>;
   try {
-    data6 = await attemptUpload(normalizedAsset);
+    data6 = await runWithRetry(() => attemptUpload(normalizedAsset), UPLOAD_RETRY_DELAYS_MS, "正文图片上传");
   } catch (error3) {
     if (isMediaFileCountOutOfLimitError(error3)) {
       throw createMaterialLimitError();
@@ -1044,7 +1085,7 @@ async function uploadWechatImage(account: PublisherAccount, accessToken: string,
     });
     normalizedAsset = await forceSafeWechatAsset(endpoint, asset);
     try {
-      data6 = await attemptUpload(normalizedAsset);
+      data6 = await runWithRetry(() => attemptUpload(normalizedAsset), UPLOAD_RETRY_DELAYS_MS, "正文图片安全格式上传");
     } catch (retryError) {
       if (isMediaFileCountOutOfLimitError(retryError)) {
         throw createMaterialLimitError();
@@ -1083,16 +1124,28 @@ async function rehostArticleImages(app: App, file: TFile, html5: string, accessT
       refCount: refs.length
     });
   }
+  const failures: ImageFailure[] = [];
   for (const [index2, ref] of refs.entries()) {
     onProgress?.(`正在上传正文图片 ${index2 + 1}/${refs.length}...`);
-    let asset: ImageAsset;
+    const imageSource = ref.originalSource ?? ref.src;
     const mappedSource = ref.src.startsWith("data:") ? lookupOriginalAssetSource(ref.src) : null;
+    let asset: ImageAsset;
     try {
       asset = await resolveArticleImageAsset(app, file, ref.originalSource ?? ref.src);
     } catch (error3) {
-      throw new Error(
-        `第 ${index2 + 1} 张正文图片读取失败：${error3 instanceof Error ? error3.message : "未知错误"}；来源：${(ref.originalSource ?? ref.src).slice(0, 120)}${ref.originalSource ? `；原始来源：${ref.originalSource.slice(0, 120)}` : ""}${mappedSource ? `；映射来源：${mappedSource.slice(0, 120)}` : ""}`
+      const errorMsg = `读取失败：${error3 instanceof Error ? error3.message : "未知错误"}`;
+      failures.push({
+        index: index2 + 1,
+        source: imageSource.slice(0, 200),
+        message: errorMsg
+      });
+      console.warn(
+        `[WeiXin MP Publisher] 第 ${index2 + 1} 张图片（${previewSource(imageSource)}）读取失败，使用占位图替换`,
+        error3 instanceof Error ? error3.message : error3
       );
+      imageElements[index2]?.setAttribute("src", FAILURE_PLACEHOLDER_DATA_URL);
+      imageElements[index2]?.setAttribute("data-wxp-failed", "true");
+      continue;
     }
     const sourceKey = await createCoverMediaSourceKey(asset);
     const cachedRecord = records.find(function(r) {
@@ -1111,10 +1164,20 @@ async function rehostArticleImages(app: App, file: TFile, html5: string, accessT
           updatedAt: (/* @__PURE__ */ new Date()).toISOString()
         });
       } catch (error3) {
-        throw new Error(
-          `第 ${index2 + 1} 张正文图片上传失败：${error3 instanceof Error ? error3.message : "未知错误"}；来源：${(ref.originalSource ?? ref.src).slice(0, 120)}${ref.originalSource ? `；原始来源：${ref.originalSource.slice(0, 120)}` : ""}${mappedSource ? `；映射来源：${mappedSource.slice(0, 120)}` : ""}`
-      );
-    }
+        const errorMsg = error3 instanceof Error ? error3.message : "未知错误";
+        failures.push({
+          index: index2 + 1,
+          source: imageSource.slice(0, 200),
+          message: errorMsg
+        });
+        console.warn(
+          `[WeiXin MP Publisher] 第 ${index2 + 1} 张图片上传失败，使用占位图替换：${errorMsg}`,
+          { source: previewSource(imageSource), mappedSource: mappedSource ? previewSource(mappedSource) : null }
+        );
+        imageElements[index2]?.setAttribute("src", FAILURE_PLACEHOLDER_DATA_URL);
+        imageElements[index2]?.setAttribute("data-wxp-failed", "true");
+        continue;
+      }
     }
     imageElements[index2]?.setAttribute("src", wechatUrl);
   }
@@ -1122,7 +1185,8 @@ async function rehostArticleImages(app: App, file: TFile, html5: string, accessT
   return {
     html: nextHtml,
     imageCount: refs.length,
-    articleImageRecords: records
+    articleImageRecords: records,
+    failures
   };
 }
 function pickTitle(file: TFile, frontmatter: Record<string, unknown>): string {
@@ -1363,7 +1427,8 @@ export async function publishDraftToWechat(input: PublishInput): Promise<Publish
         imageCount,
         action: "updated",
         coverMediaRecord,
-        articleImageRecords
+        articleImageRecords,
+        imageFailures: rehostResult.failures
       };
     } catch (error3) {
       if (!isInvalidMediaIdError(error3)) {
@@ -1412,7 +1477,8 @@ export async function publishDraftToWechat(input: PublishInput): Promise<Publish
     imageCount,
     action: "created",
     coverMediaRecord,
-    articleImageRecords
+    articleImageRecords,
+    imageFailures: rehostResult.failures
   };
 }
 

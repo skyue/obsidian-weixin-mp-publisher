@@ -1187,6 +1187,45 @@
   line-height: 1.6;
 }
 
+.weixin-mp-publisher-publish-modal .weixin-mp-publisher-publish-summary {
+  padding: 12px 0;
+  line-height: 1.6;
+}
+
+.weixin-mp-publisher-publish-modal .weixin-mp-publisher-publish-status-line {
+  font-size: var(--font-ui-medium);
+  font-weight: var(--font-semibold);
+  margin-bottom: 6px;
+}
+
+.weixin-mp-publisher-publish-modal .weixin-mp-publisher-publish-stats-line {
+  font-size: var(--font-ui-small);
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.weixin-mp-publisher-publish-modal .weixin-mp-publisher-publish-failure-details {
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 8px;
+  padding: 8px;
+  background: var(--background-modifier-hover);
+  border-radius: var(--radius-s);
+}
+
+.weixin-mp-publisher-publish-modal .weixin-mp-publisher-publish-failure-row {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-error);
+  padding: 3px 0;
+  line-height: 1.5;
+}
+
+.weixin-mp-publisher-publish-modal .weixin-mp-publisher-publish-hint {
+  font-size: var(--font-ui-smaller);
+  color: var(--text-faint);
+  margin-top: 4px;
+}
+
 .weixin-mp-publisher-publish-modal .weixin-mp-publisher-publish-failure {
   color: var(--text-error);
 }

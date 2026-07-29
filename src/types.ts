@@ -236,10 +236,17 @@ export interface ParsedDataUrl {
   isBase64: boolean;
 }
 
+export interface ImageFailure {
+  index: number;
+  source: string;
+  message: string;
+}
+
 export interface RehostResult {
   html: string;
   imageCount: number;
   articleImageRecords: ArticleImageRecord[];
+  failures: ImageFailure[];
 }
 
 export interface PublishInput {
@@ -261,5 +268,6 @@ export interface PublishResult {
   action: string;
   coverMediaRecord?: CoverMediaRecord;
   articleImageRecords?: ArticleImageRecord[];
+  imageFailures: ImageFailure[];
 }
 

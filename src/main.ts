@@ -1,7 +1,7 @@
 import { Plugin, Modal, Setting, Notice, TFile, MarkdownView, requestUrl, normalizePath, DataAdapter } from 'obsidian';
 import { renderMarkdownToWechatHtml } from '../packages/render-core/src/index.ts';
 import { BUILTIN_THEMES, BUILTIN_STYLE_PROFILES, getThemeById, getStyleProfileById } from '../packages/theme-pack/src/index.ts';
-import { DEFAULT_SETTINGS, cloneDraftRecords, pruneDraftRecords, createStylePresetId, cloneStyleOverrides, normalizePublisherAccount, cloneCoverMediaRecords, pruneCoverMediaRecords, cloneArticleImageRecords, pruneArticleImageRecords, PublisherAccount, PublisherSettings, DraftRecord, CoverMediaRecord, ArticleImageRecord, StylePreset, WechatApiJson } from './types.ts';
+import { DEFAULT_SETTINGS, cloneDraftRecords, pruneDraftRecords, createStylePresetId, cloneStyleOverrides, normalizePublisherAccount, cloneCoverMediaRecords, pruneCoverMediaRecords, cloneArticleImageRecords, pruneArticleImageRecords, PublisherAccount, PublisherSettings, DraftRecord, CoverMediaRecord, ArticleImageRecord, StylePreset, WechatApiJson, ImageFailure } from './types.ts';
 import { AccountConfigModal } from './account-modal.ts';
 import { FormatModal } from './format-modal.ts';
 import { preprocessMarkdownForWechat } from './markdown-pipeline.ts';
@@ -55,6 +55,39 @@ class PublishModal extends Modal {
     const buttonContainer = this.contentEl.createDiv({ cls: "weixin-mp-publisher-publish-buttons" });
     new Setting(buttonContainer).addButton((btn) => {
       btn.setButtonText("关闭").setCta().onClick(() => this.close());
+    });
+  }
+  showPartialSuccess(title: string, imageCount: number, action: string, failures: ImageFailure[]) {
+    this.titleEl.setText("发布完成");
+    this.contentEl.empty();
+    const summaryContainer = this.contentEl.createDiv({ cls: "weixin-mp-publisher-publish-summary" });
+    const statusLine = summaryContainer.createDiv({ cls: "weixin-mp-publisher-publish-status-line" });
+    statusLine.setText(
+      `${action === "updated" ? "已更新草稿" : "发布成功"}：${title}`
+    );
+    const statsLine = summaryContainer.createDiv({ cls: "weixin-mp-publisher-publish-stats-line" });
+    const successCount = imageCount - failures.length;
+    if (failures.length > 0) {
+      statsLine.setText(`✅ 正文图片：${successCount}/${imageCount} 上传成功，❌ ${failures.length} 张失败`);
+      const failureDetails = summaryContainer.createDiv({ cls: "weixin-mp-publisher-publish-failure-details" });
+      for (const failure of failures) {
+        const failureRow = failureDetails.createDiv({ cls: "weixin-mp-publisher-publish-failure-row" });
+        const truncatedSource = failure.source.length > 80 ? failure.source.slice(0, 80) + "..." : failure.source;
+        failureRow.setText(`❌ 第 ${failure.index} 张 (${truncatedSource})：${failure.message}`);
+      }
+      const hint = summaryContainer.createDiv({ cls: "weixin-mp-publisher-publish-hint" });
+      hint.setText("修复失败的图片后，重新发布即可补传（已成功的图片会走缓存，无需重传）。");
+    } else {
+      statsLine.setText(`✅ 正文图片：${imageCount} 张全部上传成功。`);
+    }
+    const buttonContainer = this.contentEl.createDiv({ cls: "weixin-mp-publisher-publish-buttons" });
+    new Setting(buttonContainer).addButton((btn) => {
+      btn.setButtonText("打开公众号后台").setCta().onClick(() => {
+        this.plugin.openWechatPlatform();
+        this.close();
+      });
+    }).addButton((btn) => {
+      btn.setButtonText("关闭").onClick(() => this.close());
     });
   }
 };
@@ -818,9 +851,14 @@ class WeiXinMpPublisherPlugin extends Plugin {
         title: result.title,
         updatedAt: (/* @__PURE__ */ new Date()).toISOString()
       });
-      publishModal.showSuccess(
-        `${result.action === "updated" ? "已更新草稿" : "发布成功"}：${result.title}，已上传 ${result.imageCount} 张图片。`
-      );
+      const failures = result.imageFailures ?? [];
+      if (failures.length > 0) {
+        publishModal.showPartialSuccess(result.title, result.imageCount, result.action, failures);
+      } else {
+        publishModal.showSuccess(
+          `${result.action === "updated" ? "已更新草稿" : "发布成功"}：${result.title}，已上传 ${result.imageCount} 张图片。`
+        );
+      }
     } catch (error3) {
       console.error(error3);
       publishModal.showFailure(
