@@ -2,7 +2,15 @@ import { App, TFile, requestUrl, normalizePath } from 'obsidian';
 import { HtmlImageRef, PublisherAccount, PublishInput, PublishResult, ArticleImageRecord, CoverMediaRecord, ImageAsset, RehostResult, ParsedDataUrl, WechatApiJson, ImageFailure } from './types.ts';
 import { resolveAssetLinkForWechat, lookupOriginalAssetSource } from './markdown-pipeline.ts';
 const PLACEHOLDER_PNG_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAACWCAIAAAAUvlBOAAABmElEQVR4nO3SQQkAIADAQBObxDgGtIRDkIMLsMfGXBuuG88L+JKxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIuEsUgYi4SxSBiLhLFIGIvEAXiM4h0Wv2iTAAAAAElFTkSuQmCC";
-const FAILURE_PLACEHOLDER_DATA_URL = "data:image/svg+xml;base64," + btoa(
+function encodeSvgDataUrl(svg: string): string {
+  const bytes = new TextEncoder().encode(svg);
+  let binary = "";
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return "data:image/svg+xml;base64," + btoa(binary);
+}
+const FAILURE_PLACEHOLDER_DATA_URL = encodeSvgDataUrl(
   '<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180"><rect width="320" height="180" fill="#f5f5f5" stroke="#e0e0e0" stroke-width="1"/><g transform="translate(160,75)"><circle cx="0" cy="0" r="18" fill="#fff" stroke="#d0d0d0" stroke-width="2"/><line x1="-9" y1="-9" x2="9" y2="9" stroke="#d0d0d0" stroke-width="2"/><line x1="9" y1="-9" x2="-9" y2="9" stroke="#d0d0d0" stroke-width="2"/></g><text x="160" y="130" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" fill="#999">图片上传失败</text><text x="160" y="155" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#bbb">可修复后重新发布</text></svg>'
 );
 const UPLOAD_RETRY_DELAYS_MS = [1000, 2000];
