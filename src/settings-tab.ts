@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Notice, Setting, TextComponent, ExtraButtonComponent, SettingPage, requireApiVersion, type SettingDefinitionItem } from 'obsidian';
+import { App, PluginSettingTab, Notice, Setting, TextComponent, ExtraButtonComponent, SettingPage, type SettingDefinitionItem } from 'obsidian';
 import type WeiXinMpPublisherPlugin from './main.ts';
 import { createEmptyAccount } from './types.ts';
 function runAsync3(action: () => Promise<void>) {
@@ -32,6 +32,16 @@ function addSecretTextField2(setting: Setting, value2: string, onChange: (value:
     });
   });
 }
+class PublisherAccountsPage extends SettingPage {
+  constructor(private readonly renderAccounts: (containerEl: HTMLElement) => void) {
+    super();
+  }
+
+  display() {
+    this.renderAccounts(this.containerEl);
+  }
+}
+
 export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
   plugin: WeiXinMpPublisherPlugin;
   constructor(app: App, plugin23: WeiXinMpPublisherPlugin) {
@@ -54,26 +64,9 @@ export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
         type: "page",
         name: "公众号账号",
         desc: "配置 AppID、AppSecret、API Key、IP 白名单、默认作者和封面。",
-        page: () => {
-          const tab = this;
-          return new class extends SettingPage {
-            display() {
-              tab.renderAccounts(this.containerEl);
-            }
-          }();
-        }
+        page: () => new PublisherAccountsPage((containerEl) => this.renderAccounts(containerEl))
       }
     ];
-  }
-  display() {
-    if (requireApiVersion("1.13.0")) return;
-
-    const { containerEl } = this;
-    containerEl.empty();
-    containerEl.createEl("h2", { text: "WeiXin MP Publisher 设置" });
-    this.renderTheme(new Setting(containerEl).setName("默认主题").setDesc("用于预览和复制 HTML 的默认主题。"));
-    this.renderStyle(new Setting(containerEl).setName("默认排版模板").setDesc("控制字号、留白和阅读节奏，独立于主题风格。"));
-    this.renderAccounts(containerEl.createDiv());
   }
   private renderTheme(setting: Setting) {
     setting.addDropdown((dropdown) => {

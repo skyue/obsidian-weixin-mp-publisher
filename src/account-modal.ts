@@ -95,7 +95,7 @@ export const AccountConfigModal = class extends Modal {
         cls: "weixin-mp-publisher-paste-import__textarea",
         attr: { placeholder: "公众号\n你的公众号名称\nAppID\nwx...\nAppSecret\n..." }
       });
-      const resultEl = importEl.createEl("div", { cls: "weixin-mp-publisher-paste-import__result" });
+      const resultEl = importEl.createDiv({ cls: "weixin-mp-publisher-paste-import__result" });
       new Setting(importEl).addButton((button) => {
         button.setButtonText("识别并新增账号");
         button.setCta();
@@ -145,7 +145,7 @@ export const AccountConfigModal = class extends Modal {
         const tabEl = tabRowEl.createDiv({
           cls: "weixin-mp-publisher-account-tab" + (isSelected ? " weixin-mp-publisher-account-tab--selected" : "")
         });
-        tabEl.createEl("span", {
+        tabEl.createSpan({
           cls: "weixin-mp-publisher-account-tab__name",
           text: account2.name || "未命名账号"
         });

@@ -110,20 +110,20 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     this.metaTitleEl = metaText.createDiv({ cls: "wp-title untitled" });
     this.metaTitleEl.setText("未命名草稿");
     this.metaSubEl = metaText.createDiv({ cls: "wp-sub" });
-    this.metaCaretEl = this.metaCardEl.createEl("span", { cls: "wp-caret" });
+    this.metaCaretEl = this.metaCardEl.createSpan({ cls: "wp-caret" });
     this.appendIcon(this.metaCaretEl, "chevronDown", { size: 12 });
     this.metaCardEl.addEventListener("click", () => this.toggleDrawer());
     this.accountMenuWrapEl = this.toolbarEl.createDiv({ cls: "wp-menu-wrap" });
     this.accountPillEl = this.accountMenuWrapEl.createEl("button", {
       cls: "wp-account"
     });
-    this.accountPillStatusEl = this.accountPillEl.createEl("span", {
+    this.accountPillStatusEl = this.accountPillEl.createSpan({
       cls: "wp-account-status none"
     });
-    this.accountPillNameEl = this.accountPillEl.createEl("span", {
+    this.accountPillNameEl = this.accountPillEl.createSpan({
       cls: "wp-account-name"
     });
-    const caretWrap = this.accountPillEl.createEl("span", { cls: "wp-account-caret" });
+    const caretWrap = this.accountPillEl.createSpan({ cls: "wp-account-caret" });
     this.appendIcon(caretWrap, "chevronDown", { size: 10 });
     this.accountPillEl.addEventListener("click", (e3) => {
       e3.stopPropagation();
@@ -133,12 +133,12 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     this.themePillEl = this.themeMenuWrapEl.createEl("button", {
       cls: "wp-theme-pill"
     });
-    const themeIconWrap = this.themePillEl.createEl("span", { cls: "wp-theme-pill-icon" });
+    const themeIconWrap = this.themePillEl.createSpan({ cls: "wp-theme-pill-icon" });
     this.appendIcon(themeIconWrap, "type", { size: 13 });
-    this.themePillNameEl = this.themePillEl.createEl("span", {
+    this.themePillNameEl = this.themePillEl.createSpan({
       cls: "wp-theme-pill-name"
     });
-    const themeCaret = this.themePillEl.createEl("span", { cls: "wp-account-caret" });
+    const themeCaret = this.themePillEl.createSpan({ cls: "wp-account-caret" });
     this.appendIcon(themeCaret, "chevronDown", { size: 10 });
     this.themePillEl.addEventListener("click", (e3) => {
       e3.stopPropagation();
@@ -154,7 +154,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     const primaryBtn = this.toolbarEl.createEl("button", { cls: "wp-primary" });
     primaryBtn.setAttr("title", "发布到微信公众号草稿箱");
     this.appendIcon(primaryBtn, "send", { size: 14 });
-    primaryBtn.createEl("span", { text: "发布草稿" });
+    primaryBtn.createSpan({ text: "发布草稿" });
     primaryBtn.addEventListener("click", () => {
       void this.plugin.publishActiveNoteDraft(this.plugin.settings.defaultThemeId);
     });
@@ -172,7 +172,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
   renderDrawer() {
     this.drawerEl = this.containerEl.createDiv({ cls: "wp-drawer" });
     const titleField = this.drawerEl.createDiv({ cls: "wp-field" });
-    titleField.createEl("span", { cls: "wp-field-label", text: "标题" });
+    titleField.createSpan({ cls: "wp-field-label", text: "标题" });
     this.titleInputEl = titleField.createEl("input", {
       type: "text",
       cls: "wp-input"
@@ -185,7 +185,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
       this.updateMetaCard();
     });
     const authorField = this.drawerEl.createDiv({ cls: "wp-field" });
-    authorField.createEl("span", { cls: "wp-field-label", text: "作者" });
+    authorField.createSpan({ cls: "wp-field-label", text: "作者" });
     this.authorInputEl = authorField.createEl("input", {
       type: "text",
       cls: "wp-input"
@@ -198,7 +198,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
       this.updateMetaCard();
     });
     const coverField = this.drawerEl.createDiv({ cls: "wp-field wide" });
-    coverField.createEl("span", { cls: "wp-field-label", text: "封面" });
+    coverField.createSpan({ cls: "wp-field-label", text: "封面" });
     const coverRow = coverField.createDiv({ cls: "wp-cover-row" });
     this.coverThumbEl = coverRow.createDiv({ cls: "wp-cover-thumb empty" });
     const coverMain = coverRow.createDiv({ cls: "wp-cover-main" });
@@ -340,12 +340,12 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
         text: item.account.name || "未命名账号"
       });
       const statusLine = body.createDiv({ cls: "wp-account-item-status" });
-      statusLine.createEl("span", {
+      statusLine.createSpan({
         cls: "wp-account-status wp-account-item-dot " + item.status
       });
       statusLine.appendText(item.hint);
       if (item.account.id === currentId) {
-        const check = rowEl.createEl("span", { cls: "wp-account-item-check" });
+        const check = rowEl.createSpan({ cls: "wp-account-item-check" });
         this.appendIcon(check, "check", { size: 14 });
       }
       rowEl.addEventListener("click", () => {
@@ -354,7 +354,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     }
     this.accountMenuEl.createDiv({ cls: "wp-menu-sep" });
     const configRow = this.accountMenuEl.createDiv({ cls: "wp-menu-item" });
-    const plusIcon = configRow.createEl("span", { cls: "wp-menu-icon" });
+    const plusIcon = configRow.createSpan({ cls: "wp-menu-icon" });
     this.appendIcon(plusIcon, "plus");
     configRow.appendText("新建 / 管理账号…");
     configRow.addEventListener("click", () => {
@@ -407,9 +407,9 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     const currentStyleId = this.plugin.settings.defaultStyleId;
     const allThemes = this.plugin.themes;
     const advRow = this.themeMenuEl.createDiv({ cls: "wp-menu-item" });
-    const advIcon = advRow.createEl("span", { cls: "wp-menu-icon" });
+    const advIcon = advRow.createSpan({ cls: "wp-menu-icon" });
     this.appendIcon(advIcon, "key");
-    advRow.createEl("span", {
+    advRow.createSpan({
       cls: "wp-menu-text",
       text: "高级微调 / 我的方案…"
     });
@@ -433,7 +433,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
         text: theme.description
       });
       if (theme.id === currentThemeId) {
-        const check = row.createEl("span", { cls: "wp-account-item-check" });
+        const check = row.createSpan({ cls: "wp-account-item-check" });
         this.appendIcon(check, "check", { size: 14 });
       }
       row.addEventListener("click", () => {
@@ -459,7 +459,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
         text: styleProfile.description
       });
       if (styleProfile.id === currentStyleId) {
-        const check = row.createEl("span", { cls: "wp-account-item-check" });
+        const check = row.createSpan({ cls: "wp-account-item-check" });
         this.appendIcon(check, "check", { size: 14 });
       }
       row.addEventListener("click", () => {
@@ -532,13 +532,13 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
   addMoreMenuItem(icon2: string, text6: string, meta3: string | null, onClick: (e: MouseEvent) => void, metaVariant: string | null = null) {
     if (!this.moreMenuEl) return;
     const row = this.moreMenuEl.createDiv({ cls: "wp-menu-item" });
-    const iconEl = row.createEl("span", { cls: "wp-menu-icon" });
+    const iconEl = row.createSpan({ cls: "wp-menu-icon" });
     this.appendIcon(iconEl, icon2);
-    row.createEl("span", { cls: "wp-menu-text", text: text6 });
+    row.createSpan({ cls: "wp-menu-text", text: text6 });
     if (meta3) {
-      const metaEl = row.createEl("span", { cls: "wp-menu-meta" });
+      const metaEl = row.createSpan({ cls: "wp-menu-meta" });
       if (metaVariant === "badge") {
-        metaEl.createEl("span", { cls: "wp-badge-warn", text: meta3 });
+        metaEl.createSpan({ cls: "wp-badge-warn", text: meta3 });
       } else {
         metaEl.setText(meta3);
       }
@@ -766,7 +766,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     }
     if (this.metaSubEl) {
       this.metaSubEl.empty();
-      this.metaSubEl.createEl("span", { text: "打开一篇笔记以开始" });
+      this.metaSubEl.createSpan({ text: "打开一篇笔记以开始" });
     }
     if (this.metaCoverEl) {
       this.metaCoverEl.empty();
@@ -794,12 +794,12 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
     const coverSource = this.inferCoverSource(cover);
     if (this.metaSubEl) {
       this.metaSubEl.empty();
-      this.metaSubEl.createEl("span", { text: author.trim() || "未署名" });
-      this.metaSubEl.createEl("span", { cls: "sep", text: "\xB7" });
+      this.metaSubEl.createSpan({ text: author.trim() || "未署名" });
+      this.metaSubEl.createSpan({ cls: "sep", text: "\xB7" });
       const coverHint = coverSource === "account-default" ? "默认封面" : cover.trim() ? "封面已设置" : "无封面";
-      this.metaSubEl.createEl("span", { text: coverHint });
-      this.metaSubEl.createEl("span", { cls: "sep", text: "\xB7" });
-      this.metaSubEl.createEl("span", {
+      this.metaSubEl.createSpan({ text: coverHint });
+      this.metaSubEl.createSpan({ cls: "sep", text: "\xB7" });
+      this.metaSubEl.createSpan({
         cls: "edit-hint",
         text: this.drawerOpen ? "收起 ↑" : "点击编辑 →"
       });

@@ -1,5 +1,6 @@
 import { App, TFile, MarkdownRenderer, Component } from 'obsidian';
 import katex from 'katex';
+import type { Mermaid } from 'mermaid';
 // @ts-ignore - imported as text via esbuild loader
 import katexCSS from 'katex/dist/katex.min.css';
 const IMAGE_EXTENSIONS = /* @__PURE__ */ new Map([
@@ -11,7 +12,7 @@ const IMAGE_EXTENSIONS = /* @__PURE__ */ new Map([
   ["svg", "image/svg+xml"],
   ["bmp", "image/bmp"]
 ]);
-let mermaidPromise = null;
+let mermaidPromise: Promise<Mermaid> | undefined;
 const RESOLVED_ASSET_SOURCE_MAP: Map<string, string> = /* @__PURE__ */ new Map();
 const RESOLVED_ASSET_SOURCE_PREFIX_MAP: Map<string, string> = /* @__PURE__ */ new Map();
 const RESOLVED_ASSET_PREFIX_LENGTH = 256;
@@ -229,7 +230,7 @@ function findVaultFile(app: App, sourceFile: TFile, rawLink: string): TFile | nu
   const normalizedBasename = normalizeLookupKey(basename);
   return app.vault.getFiles().find((file) => normalizeLookupKey(file.name) === normalizedBasename) ?? null;
 }
-async function getMermaidRenderer(): Promise<{ render(id: string, code: string, host: HTMLElement): Promise<{ svg: string }> }> {
+function getMermaidRenderer(): Promise<Mermaid> {
   if (!mermaidPromise) {
     mermaidPromise = import("mermaid").then(({ default: mermaid2 }) => {
       mermaid2.initialize({
@@ -244,7 +245,7 @@ async function getMermaidRenderer(): Promise<{ render(id: string, code: string, 
 }
 
 function measureKatex(expression: string, display: boolean): { width: number; height: number } {
-  const host = createEl("div");
+  const host = createDiv();
   host.setCssStyles({
     position: "absolute",
     visibility: "hidden",
@@ -268,10 +269,7 @@ function measureKatex(expression: string, display: boolean): { width: number; he
   return { width: w, height: h };
 }
 function createHiddenRenderHost(className: string): HTMLElement {
-  const host = createEl("div");
-  host.className = `weixin-mp-publisher-hidden-host ${className}`;
-  activeDocument.body.appendChild(host);
-  return host;
+  return activeDocument.body.createDiv({ cls: ["weixin-mp-publisher-hidden-host", className] });
 }
 function waitForMermaidSvg(container2: HTMLElement, timeout2: number): Promise<SVGSVGElement> {
   return new Promise((resolve2) => {
@@ -297,9 +295,7 @@ function waitForMermaidSvg(container2: HTMLElement, timeout2: number): Promise<S
   });
 }
 async function renderMermaidViaObsidian(app: App, sourceFile: TFile, code: string): Promise<string> {
-  const container2 = createEl("div");
-  container2.className = "wxp-mermaid-obsidian-render";
-  activeDocument.body.appendChild(container2);
+  const container2 = activeDocument.body.createDiv({ cls: "wxp-mermaid-obsidian-render" });
   const component2 = new Component();
   component2.load();
   try {
