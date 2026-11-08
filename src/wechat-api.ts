@@ -598,7 +598,7 @@ async function convertAssetToPng(asset: ImageAsset): Promise<ImageAsset> {
     }
   }
   const rasterSource = await loadRasterImage(asset);
-  const canvas = activeDocument.createElement("canvas");
+  const canvas = createEl("canvas");
   canvas.width = rasterSource.width || 200;
   canvas.height = rasterSource.height || 150;
   const context = canvas.getContext("2d");
@@ -670,7 +670,7 @@ async function convertAssetToJpeg(asset: ImageAsset, options3?: { maxWidth?: num
   const scale3 = Math.min(1, widthScale, heightScale);
   const targetWidth = Math.max(1, Math.round(naturalWidth * scale3));
   const targetHeight = Math.max(1, Math.round(naturalHeight * scale3));
-  const canvas = activeDocument.createElement("canvas");
+  const canvas = createEl("canvas");
   canvas.width = targetWidth;
   canvas.height = targetHeight;
   const context = canvas.getContext("2d");
@@ -870,7 +870,7 @@ async function runWithRetry<T>(fn: () => Promise<T>, retryDelays: number[], erro
           `[WeiXin MP Publisher] ${errorLabel}第 ${attempt + 1} 次失败，${delay / 1000}s 后重试`,
           error3 instanceof Error ? error3.message : error3
         );
-        await new Promise((resolve2) => setTimeout(resolve2, delay));
+        await new Promise((resolve2) => window.setTimeout(resolve2, delay));
         continue;
       }
       throw error3;

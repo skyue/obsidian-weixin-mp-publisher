@@ -553,7 +553,7 @@ class WeiXinMpPublisherPlugin extends Plugin {
     new Notice(successMessage);
   }
   async activatePreview() {
-    this.captureMarkdownContext(this.app.workspace.activeLeaf ?? void 0);
+    this.captureMarkdownContext();
     let leaf = this.app.workspace.getLeavesOfType(PREVIEW_VIEW_TYPE)[0];
     if (!leaf) {
       leaf = this.app.workspace.getRightLeaf(false) ?? this.app.workspace.getLeaf(false);
@@ -577,11 +577,11 @@ class WeiXinMpPublisherPlugin extends Plugin {
     }) ?? null;
   }
   captureMarkdownContext(leaf?: { view: unknown } | null): void {
-    const targetLeaf = leaf ?? this.app.workspace.activeLeaf ?? this.findMarkdownLeaf();
-    if (!targetLeaf || !(targetLeaf.view instanceof MarkdownView) || !targetLeaf.view.file) {
+    const view = leaf ? leaf.view : this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!(view instanceof MarkdownView) || !view.file) {
       return;
     }
-    this.lastMarkdownFilePath = targetLeaf.view.file.path;
+    this.lastMarkdownFilePath = view.file.path;
   }
   getPreferredAccount() {
     const accessibleAccounts = this.getAvailableAccounts();
@@ -900,7 +900,7 @@ class WeiXinMpPublisherPlugin extends Plugin {
   }
   async pickImageFile(): Promise<File | null> {
     return new Promise((resolve2) => {
-      const input = activeDocument.createElement("input");
+      const input = createEl("input");
       input.type = "file";
       input.accept = "image/png,image/jpeg,image/jpg,image/gif,image/webp,image/svg+xml";
       input.onchange = () => {

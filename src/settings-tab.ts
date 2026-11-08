@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Notice, Setting, TextComponent, ExtraButtonComponent } from 'obsidian';
+import { App, PluginSettingTab, Notice, Setting, TextComponent, ExtraButtonComponent, SettingPage, requireApiVersion, type SettingDefinitionItem } from 'obsidian';
 import type WeiXinMpPublisherPlugin from './main.ts';
 import { createEmptyAccount } from './types.ts';
 function runAsync3(action: () => Promise<void>) {
@@ -38,11 +38,45 @@ export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
     super(app, plugin23);
     this.plugin = plugin23;
   }
+  getSettingDefinitions(): SettingDefinitionItem[] {
+    return [
+      {
+        name: "默认主题",
+        desc: "用于预览和复制 HTML 的默认主题。",
+        render: (setting) => { this.renderTheme(setting); }
+      },
+      {
+        name: "默认排版模板",
+        desc: "控制字号、留白和阅读节奏，独立于主题风格。",
+        render: (setting) => { this.renderStyle(setting); }
+      },
+      {
+        type: "page",
+        name: "公众号账号",
+        desc: "配置 AppID、AppSecret、API Key、IP 白名单、默认作者和封面。",
+        page: () => {
+          const tab = this;
+          return new class extends SettingPage {
+            display() {
+              tab.renderAccounts(this.containerEl);
+            }
+          }();
+        }
+      }
+    ];
+  }
   display() {
+    if (requireApiVersion("1.13.0")) return;
+
     const { containerEl } = this;
     containerEl.empty();
     containerEl.createEl("h2", { text: "WeiXin MP Publisher 设置" });
-    new Setting(containerEl).setName("默认主题").setDesc("用于预览和复制 HTML 的默认主题。").addDropdown((dropdown) => {
+    this.renderTheme(new Setting(containerEl).setName("默认主题").setDesc("用于预览和复制 HTML 的默认主题。"));
+    this.renderStyle(new Setting(containerEl).setName("默认排版模板").setDesc("控制字号、留白和阅读节奏，独立于主题风格。"));
+    this.renderAccounts(containerEl.createDiv());
+  }
+  private renderTheme(setting: Setting) {
+    setting.addDropdown((dropdown) => {
       for (const theme of this.plugin.getAvailableThemes()) {
         dropdown.addOption(theme.id, `${theme.label} \xB7 ${theme.description}`);
       }
@@ -53,7 +87,9 @@ export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
         });
       });
     });
-    new Setting(containerEl).setName("默认排版模板").setDesc("控制字号、留白和阅读节奏，独立于主题风格。").addDropdown((dropdown) => {
+  }
+  private renderStyle(setting: Setting) {
+    setting.addDropdown((dropdown) => {
       for (const styleProfile of this.plugin.styleProfiles) {
         dropdown.addOption(styleProfile.id, `${styleProfile.label} \xB7 ${styleProfile.description}`);
       }
@@ -64,6 +100,9 @@ export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
         });
       });
     });
+  }
+  private renderAccounts(containerEl: HTMLElement) {
+    containerEl.empty();
     containerEl.createEl("h3", { text: "公众号账号" });
     if (this.plugin.settings.accounts.length === 0) {
       containerEl.createDiv({
@@ -95,7 +134,7 @@ export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
               this.plugin.settings.preferredAccountId = null;
             }
             await this.plugin.saveSettings();
-            this.display();
+            this.renderAccounts(containerEl);
           });
         });
       });
@@ -143,7 +182,7 @@ export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
             } catch (error3) {
               new Notice(`检测公网 IP 失败：${error3 instanceof Error ? error3.message : "未知错误"}`, 1e4);
             }
-            this.display();
+            this.renderAccounts(containerEl);
           });
         });
       }).addButton((button) => {
@@ -185,7 +224,7 @@ export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
         button.onClick(() => {
           runAsync3(async () => {
             await this.plugin.pickAccountDefaultCover(account.id);
-            this.display();
+            this.renderAccounts(containerEl);
           });
         });
       }).addButton((button) => {
@@ -195,7 +234,7 @@ export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
           runAsync3(async () => {
             await this.plugin.clearAccountDefaultCover(account.id);
             new Notice("已清空账号默认封面。");
-            this.display();
+            this.renderAccounts(containerEl);
           });
         });
       });
@@ -205,7 +244,7 @@ export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
           runAsync3(async () => {
             this.plugin.settings.preferredAccountId = value2 ? account.id : null;
             await this.plugin.saveSettings();
-            this.display();
+            this.renderAccounts(containerEl);
           });
         });
       });
@@ -225,7 +264,7 @@ export const WeiXinMpPublisherSettingTab = class extends PluginSettingTab {
           }
           this.plugin.settings.accounts.push(createEmptyAccount());
           await this.plugin.saveSettings();
-          this.display();
+          this.renderAccounts(containerEl);
           new Notice("已新增一个本地公众号账号配置。");
         });
       });

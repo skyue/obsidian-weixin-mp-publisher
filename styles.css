@@ -1049,18 +1049,6 @@
   text-overflow: ellipsis;
 }
 
-.weixin-mp-publisher-license-status--active {
-  color: #07c160 !important;
-}
-
-.weixin-mp-publisher-license-status--warn {
-  color: var(--color-orange, #e6a23c) !important;
-}
-
-.weixin-mp-publisher-license-status--none {
-  color: var(--text-muted) !important;
-}
-
 .weixin-mp-publisher-paste-import {
   margin: 8px 0;
   padding: 14px 16px;

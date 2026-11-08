@@ -1,4 +1,4 @@
-import { Modal, Notice, Setting, TextComponent, SliderComponent, ColorComponent } from 'obsidian';
+import { Modal, Notice, Setting, TextComponent, SliderComponent, ColorComponent, requireApiVersion } from 'obsidian';
 import type WeiXinMpPublisherPlugin from './main.ts';
 import { getStyleProfileById } from '../packages/theme-pack/src/index.ts';
 const FONT_PRESET_OPTIONS = [
@@ -91,7 +91,9 @@ function addNumberField(options3: { container: HTMLElement; name: string; desc?:
   setting.addSlider((slider) => {
     sliderRef = slider;
     slider.setLimits(options3.min, options3.max, options3.step);
-    slider.setDynamicTooltip();
+    if (!requireApiVersion("1.13.0")) {
+      slider.setDynamicTooltip();
+    }
     slider.setValue(clamp(options3.value, options3.min, options3.max));
     slider.onChange((value2) => {
       const normalized = clamp(value2, options3.min, options3.max);

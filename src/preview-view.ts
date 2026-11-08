@@ -834,7 +834,7 @@ export const WeiXinMpPublisherPreviewView = class extends ItemView {
       this.appendIcon(el, "image", { size: iconSize });
       return;
     }
-    const img = activeDocument.createElement("img");
+    const img = createEl("img");
     img.src = src;
     img.alt = "cover";
     img.className = "wp-cover-img";

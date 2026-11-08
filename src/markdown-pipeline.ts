@@ -127,7 +127,7 @@ async function loadImageFromUrl(url: string): Promise<HTMLImageElement> {
 async function svgMarkupToPngDataUrl(svgMarkup: string): Promise<string> {
   const normalized = normalizeSvgMarkup(svgMarkup);
   const image = await loadImageFromUrl(createSvgDataUrl(normalized.markup));
-  const canvas = activeDocument.createElement("canvas");
+  const canvas = createEl("canvas");
   canvas.width = normalized.width;
   canvas.height = normalized.height;
   const context = canvas.getContext("2d");
@@ -229,15 +229,12 @@ function findVaultFile(app: App, sourceFile: TFile, rawLink: string): TFile | nu
   const normalizedBasename = normalizeLookupKey(basename);
   return app.vault.getFiles().find((file) => normalizeLookupKey(file.name) === normalizedBasename) ?? null;
 }
-/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await -- Mermaid loaded dynamically via globals, no TS types available */
-
 async function getMermaidRenderer(): Promise<{ render(id: string, code: string, host: HTMLElement): Promise<{ svg: string }> }> {
   if (!mermaidPromise) {
-    mermaidPromise = Promise.resolve().then(() => (init_mermaid_core(), mermaid_core_exports)).then(async (module2) => {
-      const mermaid2 = module2.default;
+    mermaidPromise = import("mermaid").then(({ default: mermaid2 }) => {
       mermaid2.initialize({
         startOnLoad: false,
-        securityLevel: "loose",
+        securityLevel: "strict",
         theme: "default"
       });
       return mermaid2;
@@ -245,10 +242,9 @@ async function getMermaidRenderer(): Promise<{ render(id: string, code: string, 
   }
   return mermaidPromise;
 }
-/* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return, @typescript-eslint/require-await -- Mermaid loaded dynamically via globals, no TS types available */
 
 function measureKatex(expression: string, display: boolean): { width: number; height: number } {
-  const host = activeDocument.createElement("div");
+  const host = createEl("div");
   host.setCssStyles({
     position: "absolute",
     visibility: "hidden",
@@ -272,7 +268,7 @@ function measureKatex(expression: string, display: boolean): { width: number; he
   return { width: w, height: h };
 }
 function createHiddenRenderHost(className: string): HTMLElement {
-  const host = activeDocument.createElement("div");
+  const host = createEl("div");
   host.className = `weixin-mp-publisher-hidden-host ${className}`;
   activeDocument.body.appendChild(host);
   return host;
@@ -301,7 +297,7 @@ function waitForMermaidSvg(container2: HTMLElement, timeout2: number): Promise<S
   });
 }
 async function renderMermaidViaObsidian(app: App, sourceFile: TFile, code: string): Promise<string> {
-  const container2 = activeDocument.createElement("div");
+  const container2 = createEl("div");
   container2.className = "wxp-mermaid-obsidian-render";
   activeDocument.body.appendChild(container2);
   const component2 = new Component();
